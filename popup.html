@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 400px;
+      padding: 10px;
+    }
+    
+    #videoContainer {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    
+    #capturedVideo {
+      width: 100%;
+      max-height: 300px;
+      background: black;
+    }
+    
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+    }
+    
+    #status {
+      margin: 10px 0;
+      padding: 5px;
+      border-radius: 3px;
+    }
+    
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+    }
+  </style>
+</head>
+<body>
+  <h3>视频捕获预览</h3>
+  <div id="status" class="info">等待初始化...</div>
+  <div id="videoContainer">
+    <video id="capturedVideo" autoplay muted controls></video>
+  </div>
+  <button id="startCapture">开始捕获</button>
+  <button id="stopCapture">停止捕获</button>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
