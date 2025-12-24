@@ -159,6 +159,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true; // 保持消息通道开放以进行异步响应
   }
+  
+  // 停止捕获
+  if (message.action === "stop-capture") {
+    // 关闭offscreen页面
+    chrome.offscreen.closeDocument()
+      .then(() => {
+        console.log("✅ 已关闭offscreen页面");
+      })
+      .catch((e) => {
+        console.log("⚠️ 关闭offscreen页面时出错:", e);
+      });
+    
+    sendResponse({ success: true });
+    return true;
+  }
+  
   // 处理从popup发来的捕获帧消息
   if (message.action === "captureFrameFromStream") {
     // 发送消息到offscreen页面处理视频流

@@ -241,8 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 停止捕获
-  stopBtn.addEventListener('click', () => {
+// 停止捕获
+  stopBtn.addEventListener('click', async () => {
     if (captureInterval) {
       clearInterval(captureInterval);
       captureInterval = null;
@@ -251,6 +251,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentStream) {
       currentStream.getTracks().forEach(track => track.stop());
       currentStream = null;
+    }
+    
+    // 通知background停止捕获，释放资源
+    try {
+      await chrome.runtime.sendMessage({action: "stop-capture"});
+    } catch (error) {
+      console.log("通知background停止捕获时出错:", error);
     }
     
     videoElement.srcObject = null;
