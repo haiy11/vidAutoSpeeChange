@@ -81,6 +81,132 @@ document.addEventListener('DOMContentLoaded', () => {
     return (diffCount / minLength) * 100;
   }
 
+  // 启动方案一：直接捕获视频元素
+  async function startFirstMethod(tab, interval) {
+    try {
+      // 先获取页面中的视频信息
+      console.log("🔍 查找页面中的视频元素...");
+      const videoInfoResponse = await chrome.tabs.sendMessage(tab.id, {action: "getVideoInfo"});
+
+      if (videoInfoResponse.videos && videoInfoResponse.videos.length > 0) {
+        console.log(`✅ 找到 ${videoInfoResponse.videos.length} 个视频元素:`, videoInfoResponse.videos);
+        updateStatus(`找到 ${videoInfoResponse.videos.length} 个视频元素\n开始定时捕获...`, 'info');
+      } else {
+        console.log("⚠️ 页面中没有找到视频元素");
+        updateStatus("页面中没有找到视频元素\n尝试第二阶段...", 'info');
+      }
+
+      // 启动定时捕获
+      if (captureInterval) {
+        clearInterval(captureInterval);
+      }
+
+      // 设置定时器
+      captureInterval = setInterval(async () => {
+        const success = await captureAndDisplayFrame(tab);
+        // 如果方案一失败，切换到方案二
+        if (!success) {
+          console.log("🔄 方案一失败，切换到方案二");
+          clearInterval(captureInterval);
+          captureInterval = null;
+          await startSecondMethod(tab, interval);
+        }
+      }, interval);
+
+      updateStatus(`✅ 开始定时捕获，间隔: ${interval}ms\n监控中...`, 'success');
+      console.log(`✅ 开始定时捕获，间隔: ${interval}ms`);
+      return true;
+    } catch (error) {
+      console.log("⚠️ 方案一出现异常:", error.message);
+      updateStatus(`方案一异常: ${error.message}\n尝试第二阶段...`, 'info');
+      return false;
+    }
+  }
+
+  // 启动方案二：使用 tabCapture
+  async function startSecondMethod(tab, interval) {
+    updateStatus('第二阶段：使用 tabCapture 捕获整个标签页...', 'info');
+    console.log("🔄 开始第二阶段：使用 tabCapture");
+
+    // 请求获取视频流ID
+    console.log("📥 请求获取视频流ID...");
+    const streamResponse = await chrome.runtime.sendMessage({action: "get-video-stream-id"});
+
+    if (!streamResponse.success) {
+      updateStatus('获取视频流ID失败: ' + streamResponse.error, 'error');
+      console.error("❌ 第二阶段失败：获取视频流ID失败", streamResponse.error);
+      return;
+    }
+
+    const streamId = streamResponse.streamId;
+    console.log("✅ 成功获取视频流ID:", streamId);
+    updateStatus(`成功获取视频流ID\nID: ${streamId.substring(0, 20)}...\n正在后台处理视频流...`, 'success');
+
+    // 在后台offscreen页面处理视频流
+    try {
+      // 先尝试关闭可能存在的offscreen页面
+      try {
+        await chrome.offscreen.closeDocument();
+      } catch (e) {
+        // 忽略错误，如果offscreen页面不存在则正常
+      }
+      
+      // 创建offscreen页面
+      await chrome.offscreen.createDocument({
+        url: chrome.runtime.getURL('offscreen.html'),
+        reasons: ['USER_MEDIA'],
+        justification: '处理视频流'
+      });
+
+      // 通知offscreen页面处理视频流
+      await chrome.runtime.sendMessage({
+        target: 'offscreen',
+        action: 'process-stream',
+        streamId: streamId
+      });
+
+      console.log("✅ 第二阶段成功：offscreen页面已创建并开始处理视频流");
+      
+      // 启动定时捕获（使用后台offscreen页面）
+      if (captureInterval) {
+        clearInterval(captureInterval);
+      }
+
+      captureInterval = setInterval(async () => {
+        try {
+          // 在offscreen页面中捕获帧并返回给popup
+          const response = await chrome.runtime.sendMessage({
+            action: "captureFrameFromStream",
+            streamId: streamId
+          });
+          
+          if (response.success) {
+            // 显示捕获的画面
+            videoElement.srcObject = null;
+            videoElement.poster = response.imageDataUrl;
+            
+            // 计算帧变化幅度
+            const changeAmount = calculateFrameChange(window.lastFrame, response.imageDataUrl);
+            window.lastFrame = response.imageDataUrl;
+            console.log(`📊 画面变化幅度: ${changeAmount.toFixed(2)}`);
+            
+            // 更新状态显示
+            updateStatus(`✅ Tab捕获成功\n尺寸: ${response.width}x${response.height}\n方法: 捕获整个标签页`, 'success');
+          } else {
+            console.error("捕获失败:", response.error);
+            updateStatus(`❌ 捕获失败: ${response.error}`, 'error');
+          }
+        } catch (error) {
+          console.error("定时捕获失败:", error);
+          updateStatus(`❌ 定时捕获失败: ${error.message}`, 'error');
+        }
+      }, interval);
+    } catch (error) {
+      console.error("第二阶段初始化失败:", error);
+      updateStatus(`❌ 第二阶段初始化失败: ${error.message}`, 'error');
+    }
+  }
+
   // 开始定时捕获
   startBtn.addEventListener('click', async () => {
     const interval = parseInt(intervalInput.value) || 200;
@@ -95,116 +221,11 @@ document.addEventListener('DOMContentLoaded', () => {
       updateStatus('第一阶段：尝试直接捕获视频元素...', 'info');
       console.log("🔍 第一阶段：尝试直接捕获视频元素...");
 
-      try {
-        // 先获取页面中的视频信息
-        console.log("🔍 查找页面中的视频元素...");
-        const videoInfoResponse = await chrome.tabs.sendMessage(tab.id, {action: "getVideoInfo"});
-
-        if (videoInfoResponse.videos && videoInfoResponse.videos.length > 0) {
-          console.log(`✅ 找到 ${videoInfoResponse.videos.length} 个视频元素:`, videoInfoResponse.videos);
-          updateStatus(`找到 ${videoInfoResponse.videos.length} 个视频元素\n开始定时捕获...`, 'info');
-        } else {
-          console.log("⚠️ 页面中没有找到视频元素");
-          updateStatus("页面中没有找到视频元素\n尝试第二阶段...", 'info');
-        }
-
-        // 启动定时捕获
-        if (captureInterval) {
-          clearInterval(captureInterval);
-        }
-
-        // 设置定时器
-        captureInterval = setInterval(async () => {
-          await captureAndDisplayFrame(tab);
-        }, interval);
-
-        updateStatus(`✅ 开始定时捕获，间隔: ${interval}ms\n监控中...`, 'success');
-        console.log(`✅ 开始定时捕获，间隔: ${interval}ms`);
-
-      } catch (error) {
-        console.log("⚠️ 第一阶段出现异常:", error.message);
-        updateStatus(`第一阶段异常: ${error.message}\n尝试第二阶段...`, 'info');
-      }
-
-      // 如果方案一失败，尝试方案二：使用 tabCapture 兜底
-      if (!captureInterval) {
-        updateStatus('第二阶段：使用 tabCapture 捕获整个标签页...', 'info');
-        console.log("🔄 开始第二阶段：使用 tabCapture");
-
-        // 请求获取视频流ID
-        console.log("📥 请求获取视频流ID...");
-        const streamResponse = await chrome.runtime.sendMessage({action: "get-video-stream-id"});
-
-        if (!streamResponse.success) {
-          updateStatus('获取视频流ID失败: ' + streamResponse.error, 'error');
-          console.error("❌ 第二阶段失败：获取视频流ID失败", streamResponse.error);
-          return;
-        }
-
-        const streamId = streamResponse.streamId;
-        console.log("✅ 成功获取视频流ID:", streamId);
-        updateStatus(`成功获取视频流ID\nID: ${streamId.substring(0, 20)}...\n正在获取媒体流...`, 'success');
-
-        // 使用流ID获取实际的媒体流
-        console.log("📥 使用流ID获取实际的媒体流...");
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            mandatory: {
-              chromeMediaSource: 'tab',
-              chromeMediaSourceId: streamId
-            }
-          },
-          audio: {
-            mandatory: {
-              chromeMediaSource: 'tab',
-              chromeMediaSourceId: streamId
-            }
-          }
-        });
-
-        currentStream = stream;
-
-        // 在后台运行offscreen页面处理视频流
-        await chrome.offscreen.createDocument({
-          url: chrome.runtime.getURL('offscreen.html'),
-          reasons: ['USER_MEDIA'],
-          justification: '处理视频流'
-        });
-
-        console.log("✅ 第二阶段成功：获取媒体流成功");
-        displayCapture({
-          method: "tabCapture",
-          stream: stream,
-          streamId: streamId
-        });
-
-        // 启动定时捕获（使用后台offscreen页面）
-        if (captureInterval) {
-          clearInterval(captureInterval);
-        }
-
-        captureInterval = setInterval(async () => {
-          try {
-            // 在offscreen页面中捕获帧并返回给popup
-            const response = await chrome.runtime.sendMessage({
-              action: "captureFrameFromStream",
-              streamId: streamId
-            });
-            
-            if (response.success) {
-              // 显示捕获的画面
-              videoElement.srcObject = null;
-              videoElement.poster = response.imageDataUrl;
-              
-              // 计算帧变化幅度
-              const changeAmount = calculateFrameChange(window.lastFrame, response.imageDataUrl);
-              window.lastFrame = response.imageDataUrl;
-              console.log(`📊 画面变化幅度: ${changeAmount.toFixed(2)}`);
-            }
-          } catch (error) {
-            console.error("定时捕获失败:", error);
-          }
-        }, interval);
+      const firstMethodSuccess = await startFirstMethod(tab, interval);
+      
+      // 如果方案一立即失败（比如没有视频元素），则启动方案二
+      if (!firstMethodSuccess && !captureInterval) {
+        await startSecondMethod(tab, interval);
       }
 
     } catch (error) {

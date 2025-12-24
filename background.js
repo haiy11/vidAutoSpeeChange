@@ -169,9 +169,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }).then(response => {
       sendResponse(response);
     }).catch(error => {
+      console.error("捕获帧失败:", error);
       sendResponse({ success: false, error: error.message });
     });
     
     return true; // 保持消息通道开放
   }
+  
+  // 处理offscreen页面的响应（如果需要）
+  if (message.target === 'background' && message.source === 'offscreen') {
+    console.log('收到offscreen页面的消息:', message);
+  }
+  
+  return true; // 保持消息通道开放
 });
