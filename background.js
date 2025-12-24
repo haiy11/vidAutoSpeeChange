@@ -159,4 +159,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true; // 保持消息通道开放以进行异步响应
   }
+  // 处理从popup发来的捕获帧消息
+  if (message.action === "captureFrameFromStream") {
+    // 发送消息到offscreen页面处理视频流
+    chrome.runtime.sendMessage({
+      target: 'offscreen',
+      action: 'capture-frame',
+      streamId: message.streamId
+    }).then(response => {
+      sendResponse(response);
+    }).catch(error => {
+      sendResponse({ success: false, error: error.message });
+    });
+    
+    return true; // 保持消息通道开放
+  }
 });

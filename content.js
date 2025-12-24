@@ -1,4 +1,8 @@
 // content.js
+
+// 全局变量
+let lastFrameData = null;
+
 // 监听来自扩展的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getVideoInfo") {
@@ -195,6 +199,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ready: false, reason: "invalid_index"});
     }
     
+    return true;
+  }
+// 添加计算帧变化幅度的辅助函数
+  if (request.action === "calculateFrameChange") {
+    const currentFrame = request.currentFrame;
+    const lastFrame = lastFrameData;
+    
+    if (!lastFrame) {
+      lastFrameData = currentFrame;
+      sendResponse({ changeAmount: 0 });
+      return true;
+    }
+    
+    // 简单的base64字符串差异计算
+    const minLength = Math.min(lastFrame.length, currentFrame.length);
+    let diffCount = 0;
+
+    for (let i = 0; i < minLength; i++) {
+      if (lastFrame[i] !== currentFrame[i]) {
+        diffCount++;
+      }
+    }
+
+    const changeAmount = (diffCount / minLength) * 100;
+    lastFrameData = currentFrame; // 更新lastFrame
+    
+    sendResponse({ changeAmount: changeAmount });
     return true;
   }
 });
