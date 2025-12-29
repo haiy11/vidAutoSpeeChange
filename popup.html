@@ -64,11 +64,34 @@
       border: 1px solid #ccc;
       border-radius: 3px;
     }
+    
+    /* 图表容器样式 */
+    .chart-container {
+      width: 100%;
+      height: 150px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      position: relative;
+      background: white;
+    }
+    
+    .current-change {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin: 5px 0;
+      padding: 5px;
+      background: #f9f9f9;
+      border-radius: 3px;
+    }
   </style>
 </head>
 <body>
   <h3>视频捕获预览</h3>
   <div id="status" class="info">等待初始化...</div>
+  
+  <!-- 显示当前变化幅度 -->
+  <div id="currentChange" class="current-change">当前变化: --%</div>
   
   <!-- 添加间隔时间输入 -->
   <div class="interval-control">
@@ -79,6 +102,12 @@
   <div id="videoContainer">
     <video id="capturedVideo" autoplay muted controls></video>
   </div>
+  
+  <!-- 图表容器 -->
+  <div class="chart-container">
+    <canvas id="chartCanvas" class="chart-line"></canvas>
+  </div>
+  
   <button id="startCapture">开始捕获</button>
   <button id="stopCapture">停止捕获</button>
 

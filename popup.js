@@ -2,21 +2,142 @@
 let currentStream = null;
 let captureInterval = null;
 
+// 添加图表相关变量
+let changeHistory = [];
+const MAX_HISTORY_POINTS = 50; // 最多保存50个历史点
+
 document.addEventListener('DOMContentLoaded', () => {
+  // 获取DOM元素
   const statusDiv = document.getElementById('status');
   const videoElement = document.getElementById('capturedVideo');
   const startBtn = document.getElementById('startCapture');
   const stopBtn = document.getElementById('stopCapture');
   const intervalInput = document.getElementById('intervalInput');
+  const currentChangeDiv = document.getElementById('currentChange');
+  const chartCanvas = document.getElementById('chartCanvas');
+  const chartGrid = document.getElementById('chartGrid');
+
+  // 检查必需的DOM元素是否存在
+  if (!startBtn || !stopBtn) {
+    console.error('必需的DOM元素未找到，请确保popup.html包含所有必需的元素');
+    return;
+  }
+
+  // 设置canvas尺寸（如果canvas存在）
+  function setupChart() {
+    if (!chartCanvas) return;
+    const container = chartCanvas.parentElement;
+    if (!container) return;
+    chartCanvas.width = container.clientWidth;
+    chartCanvas.height = container.clientHeight;
+    drawChart();
+  }
+
+  // 绘制图表（如果canvas存在）
+  function drawChart() {
+    if (!chartCanvas) return;
+    const ctx = chartCanvas.getContext('2d');
+    if (!ctx) return;
+    const width = chartCanvas.width;
+    const height = chartCanvas.height;
+    
+    // 清空canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    if (changeHistory.length < 2) return;
+    
+    // 找到最大值用于缩放
+    let maxValue = 0;
+    for (const point of changeHistory) {
+      if (point.value > maxValue) maxValue = point.value;
+    }
+    maxValue = Math.max(maxValue, 1); // 防止最大值为0
+    
+    // 绘制网格线
+    ctx.strokeStyle = '#f0f0f0';
+    ctx.lineWidth = 1;
+    
+    // 水平网格线 (4条)
+    for (let i = 0; i <= 4; i++) {
+      const y = height * (i / 4);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+    
+    // 垂直网格线 (5条)
+    for (let i = 0; i <= 5; i++) {
+      const x = width * (i / 5);
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+    
+    // 绘制折线图
+    ctx.beginPath();
+    ctx.strokeStyle = '#007bff';
+    ctx.lineWidth = 2;
+    
+    const pointSpacing = width / (changeHistory.length - 1);
+    
+    for (let i = 0; i < changeHistory.length; i++) {
+      const x = i * pointSpacing;
+      // 将值映射到canvas高度 (从上到下)
+      const y = height - (changeHistory[i].value / maxValue) * height;
+      
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    
+    ctx.stroke();
+    
+    // 绘制数据点
+    ctx.fillStyle = '#ff0000';
+    for (let i = 0; i < changeHistory.length; i++) {
+      const x = i * pointSpacing;
+      const y = height - (changeHistory[i].value / maxValue) * height;
+      
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // 添加新的变化值到历史记录
+  function addChangeValue(value) {
+    const timestamp = Date.now();
+    changeHistory.push({ value: value, timestamp: timestamp });
+    
+    // 保持历史记录在最大限制内
+    if (changeHistory.length > MAX_HISTORY_POINTS) {
+      changeHistory.shift();
+    }
+    
+    // 更新当前变化显示（如果元素存在）
+    if (currentChangeDiv) {
+      currentChangeDiv.textContent = `当前变化: ${value.toFixed(2)}%`;
+    }
+    
+    // 更新图表
+    drawChart();
+  }
 
   // 更新状态显示
   function updateStatus(message, type = 'info') {
-    statusDiv.textContent = message;
-    statusDiv.className = type;
+    if (statusDiv) {
+      statusDiv.textContent = message;
+      statusDiv.className = type;
+    }
   }
 
   // 显示捕获的画面
   function displayCapture(data) {
+    if (!videoElement) return;
     if (data.method === "direct") {
       // 直接捕获的视频帧显示为图片
       videoElement.poster = data.imageDataUrl;
@@ -52,6 +173,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const changeAmount = await calculateFrameChange(window.lastFrame, smartCaptureResponse.imageDataUrl);
         window.lastFrame = smartCaptureResponse.imageDataUrl;
         console.log(`📊 画面变化幅度: ${changeAmount.toFixed(2)}`);
+        
+        // 添加到图表
+        addChangeValue(changeAmount);
         
         return true;
       } else {
@@ -357,13 +481,18 @@ document.addEventListener('DOMContentLoaded', () => {
           
           if (response.success) {
             // 显示捕获的画面
-            videoElement.srcObject = null;
-            videoElement.poster = response.imageDataUrl;
+            if (videoElement) {
+              videoElement.srcObject = null;
+              videoElement.poster = response.imageDataUrl;
+            }
             
             // 计算帧变化幅度 - 现在是异步的
             const changeAmount = await calculateFrameChange(window.lastFrame, response.imageDataUrl);
             window.lastFrame = response.imageDataUrl;
             console.log(`📊 画面变化幅度: ${changeAmount.toFixed(2)}`);
+            
+            // 添加到图表
+            addChangeValue(changeAmount);
             
             // 更新状态显示
             updateStatus(`✅ Tab捕获成功\n尺寸: ${response.width}x${response.height}\n方法: 捕获整个标签页`, 'success');
@@ -384,6 +513,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 开始定时捕获
   startBtn.addEventListener('click', async () => {
+    // 重置历史记录
+    changeHistory = [];
+    drawChart();
+    
     const interval = parseInt(intervalInput.value) || 200;
 
     try {
@@ -412,11 +545,13 @@ document.addEventListener('DOMContentLoaded', () => {
         currentStream.getTracks().forEach(track => track.stop());
         currentStream = null;
       }
-      videoElement.srcObject = null;
+      if (videoElement) {
+        videoElement.srcObject = null;
+      }
     }
   });
 
-// 停止捕获
+  // 停止捕获
   stopBtn.addEventListener('click', async () => {
     if (captureInterval) {
       clearInterval(captureInterval);
@@ -435,12 +570,20 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log("通知background停止捕获时出错:", error);
     }
     
-    videoElement.srcObject = null;
-    videoElement.poster = '';
+    if (videoElement) {
+      videoElement.srcObject = null;
+      videoElement.poster = '';
+    }
     updateStatus('已停止捕获', 'info');
     console.log("⏹️ 已停止捕获");
   });
 
   // 初始化状态
   updateStatus('准备就绪\n点击"开始捕获"按钮\n将先尝试直接捕获视频元素，失败后使用 tabCapture 兜底', 'info');
+  
+  // 初始化图表
+  setupChart();
+  
+  // 监听窗口大小变化以重新调整图表
+  window.addEventListener('resize', setupChart);
 });
