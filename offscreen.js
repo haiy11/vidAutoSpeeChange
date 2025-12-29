@@ -14,17 +14,29 @@ function initializeOffscreen() {
 // 处理视频流
 async function handleStream(streamId) {
   try {
-    // 使用流ID获取实际的媒体流
-    stream = await navigator.mediaDevices.getUserMedia({
+    // 首先停止之前的流（如果存在）
+    if (videoElement.srcObject) {
+      const oldStream = videoElement.srcObject;
+      if (oldStream && oldStream.getTracks) {
+        oldStream.getTracks().forEach(track => track.stop());
+      }
+    }
+    
+    // 使用chrome.desktopCapture或tabCapture API获取媒体流
+    // 由于直接使用流ID设置srcObject不可行，我们需要通过getUserMedia获取实际流
+    const constraints = {
+      audio: false, // 不需要音频
       video: {
         mandatory: {
           chromeMediaSource: 'tab',
-          chromeMediaSourceId: streamId
+          chromeMediaSourceId: streamId,
+          maxWidth: 1920,
+          maxHeight: 1080
         }
-      },
-      audio: false // 不需要音频
-    });
+      }
+    };
 
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
     videoElement.srcObject = stream;
     
     // 等待视频元素准备好
@@ -100,9 +112,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.action) {
     case 'process-stream':
       initializeOffscreen();
-      handleStream(message.streamId);
-      sendResponse({ success: true });
-      break;
+      handleStream(message.streamId).then(() => {
+        sendResponse({ success: true });
+      }).catch(error => {
+        console.error('处理流失败:', error);
+        sendResponse({ success: false, error: error.message });
+      });
+      return true; // 异步操作，保持消息通道开放
       
     case 'capture-frame':
       const result = captureFrame();

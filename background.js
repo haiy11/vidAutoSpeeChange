@@ -30,6 +30,8 @@ async function checkForVideos(tabId) {
     return {hasVideo: false};
   }
 }
+// 存储当前活动的流ID，以便正确管理
+let activeStreamId = null;
 
 // 主功能：获取视频流ID
 async function getVideoStreamId(tab) {
@@ -54,14 +56,27 @@ async function getVideoStreamId(tab) {
     
     console.log(`检测到视频: ${videoInfo.totalVideos}个，正在播放: ${videoInfo.playingVideos}个`);
     
-    // 2. 获取视频流ID
+    // 2. 如果已有活动流，先尝试关闭
+    if (activeStreamId) {
+      try {
+        // 尝试关闭offscreen document
+        await chrome.offscreen.closeDocument();
+      } catch (e) {
+        console.log("关闭offscreen document时出错:", e);
+      }
+    }
+    
+    // 3. 获取视频流ID
     const streamId = await chrome.tabCapture.getMediaStreamId({
       targetTabId: tab.id
     });
     
+    // 更新活动流ID
+    activeStreamId = streamId;
+    
     console.log("✅ 成功获取视频流ID:", streamId);
     
-    // 3. 验证视频流 - 创建一个offscreen document来处理媒体流
+    // 4. 验证视频流 - 创建一个offscreen document来处理媒体流
     try {
       // 先关闭可能存在的offscreen document
       try {
@@ -89,7 +104,7 @@ async function getVideoStreamId(tab) {
       console.warn("无法创建offscreen document进行验证:", offscreenError);
     }
     
-    // 4. 更新扩展图标状态
+    // 5. 更新扩展图标状态
     chrome.action.setIcon({
       path: {
         16: "icons/16.png",
@@ -143,9 +158,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (tabs.length > 0) {
         try {
           console.log("📥 收到获取视频流ID的请求");
+          
+          // 如果已有活动流，先尝试清理
+          if (activeStreamId) {
+            console.log("⚠️ 已存在活动流，尝试清理...");
+            try {
+              await chrome.offscreen.closeDocument();
+            } catch (e) {
+              console.log("关闭offscreen document时出错:", e);
+            }
+          }
+          
           const streamId = await chrome.tabCapture.getMediaStreamId({
             targetTabId: tabs[0].id
           });
+          
+          // 更新活动流ID
+          activeStreamId = streamId;
+          
           console.log("📤 返回视频流ID:", streamId);
           sendResponse({success: true, streamId: streamId});
         } catch (error) {
@@ -162,6 +192,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // 停止捕获
   if (message.action === "stop-capture") {
+    // 清理活动流ID
+    activeStreamId = null;
+    
     // 关闭offscreen页面
     chrome.offscreen.closeDocument()
       .then(() => {
@@ -198,4 +231,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   
   return true; // 保持消息通道开放
+});
+
+// 当扩展卸载或关闭时清理资源
+chrome.runtime.onSuspend.addListener(() => {
+  if (activeStreamId) {
+    chrome.offscreen.closeDocument().catch(e => {
+      console.log("关闭offscreen document时出错:", e);
+    });
+    activeStreamId = null;
+  }
 });
