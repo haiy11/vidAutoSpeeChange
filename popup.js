@@ -4,7 +4,8 @@ let captureInterval = null;
 
 // 添加图表相关变量
 let changeHistory = [];
-const MAX_HISTORY_POINTS = 50; // 最多保存50个历史点
+const MAX_HISTORY_POINTS = 40; // 最多保存40个历史点
+const CHART_MAX_VALUE = 50; // 图表最大值
 
 document.addEventListener('DOMContentLoaded', () => {
   // 获取DOM元素
@@ -15,7 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const intervalInput = document.getElementById('intervalInput');
   const currentChangeDiv = document.getElementById('currentChange');
   const chartCanvas = document.getElementById('chartCanvas');
-  const chartGrid = document.getElementById('chartGrid');
+  const videoTab = document.getElementById('videoTab');
+  const chartTab = document.getElementById('chartTab');
+  const videoContent = document.getElementById('videoContent');
+  const chartContent = document.getElementById('chartContent');
 
   // 检查必需的DOM元素是否存在
   if (!startBtn || !stopBtn) {
@@ -23,13 +27,26 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  // 标签页切换功能
+  function setupTabs() {
+    chartTab.addEventListener('click', () => {
+      chartTab.classList.add('active');
+      videoTab.classList.remove('active');
+      chartContent.classList.add('active');
+      videoContent.classList.remove('active');
+    });
+
+    videoTab.addEventListener('click', () => {
+      videoTab.classList.add('active');
+      chartTab.classList.remove('active');
+      videoContent.classList.add('active');
+      chartContent.classList.remove('active');
+    });
+  }
+
   // 设置canvas尺寸（如果canvas存在）
   function setupChart() {
     if (!chartCanvas) return;
-    const container = chartCanvas.parentElement;
-    if (!container) return;
-    chartCanvas.width = container.clientWidth;
-    chartCanvas.height = container.clientHeight;
     drawChart();
   }
 
@@ -46,32 +63,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (changeHistory.length < 2) return;
     
-    // 找到最大值用于缩放
-    let maxValue = 0;
-    for (const point of changeHistory) {
-      if (point.value > maxValue) maxValue = point.value;
-    }
-    maxValue = Math.max(maxValue, 1); // 防止最大值为0
+    // 固定最大值为50，最小值为0
+    const maxValue = CHART_MAX_VALUE;
     
     // 绘制网格线
     ctx.strokeStyle = '#f0f0f0';
     ctx.lineWidth = 1;
     
-    // 水平网格线 (4条)
-    for (let i = 0; i <= 4; i++) {
-      const y = height * (i / 4);
+    // 水平网格线 (5条 - 0, 10, 20, 30, 40, 50)
+    for (let i = 0; i <= 5; i++) {
+      const y = height - (i * maxValue / 5) * (height / maxValue);
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(width, y);
-      ctx.stroke();
-    }
-    
-    // 垂直网格线 (5条)
-    for (let i = 0; i <= 5; i++) {
-      const x = width * (i / 5);
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
       ctx.stroke();
     }
     
@@ -84,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     for (let i = 0; i < changeHistory.length; i++) {
       const x = i * pointSpacing;
-      // 将值映射到canvas高度 (从上到下)
+      // 将值映射到canvas高度 (从上到下)，固定范围0-50
       const y = height - (changeHistory[i].value / maxValue) * height;
       
       if (i === 0) {
@@ -96,14 +100,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     ctx.stroke();
     
-    // 绘制数据点
-    ctx.fillStyle = '#ff0000';
+    // 绘制数据点 - 使用和线一样的蓝色
+    ctx.fillStyle = '#007bff';
     for (let i = 0; i < changeHistory.length; i++) {
       const x = i * pointSpacing;
       const y = height - (changeHistory[i].value / maxValue) * height;
       
       ctx.beginPath();
-      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.arc(x, y, 2, 0, Math.PI * 2); // 减小点的大小
       ctx.fill();
     }
   }
@@ -579,7 +583,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 初始化状态
-  updateStatus('准备就绪\n点击"开始捕获"按钮\n将先尝试直接捕获视频元素，失败后使用 tabCapture 兜底', 'info');
+  updateStatus('点击"开始捕获"按钮会先尝试直接捕获视频元素，失败后捕获网页画面', 'info');
+  
+  // 初始化标签页
+  setupTabs();
   
   // 初始化图表
   setupChart();

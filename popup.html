@@ -6,17 +6,57 @@
     body {
       width: 400px;
       padding: 10px;
+      overflow: hidden; /* 防止滚动条出现 */
+    }
+
+    /* 标签页样式 */
+    .tabs {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    
+    .tab {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      background: #e0e0e0;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      margin-right: 2px;
+    }
+    
+    .tab.active {
+      background: #007bff;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 10px 0;
+      min-height: 220px; /* 固定最小高度 */
+      height: 220px; /* 固定高度 */
+      overflow: hidden; /* 防止内容溢出 */
+    }
+    
+    .tab-content.active {
+      display: block;
     }
 
     #videoContainer {
       width: 100%;
-      margin-bottom: 10px;
+      height: 200px; /* 固定视频容器高度 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     #capturedVideo {
-      width: 100%;
-      max-height: 300px;
-      background: black;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain; /* 保持视频比例 */
     }
 
     button {
@@ -68,8 +108,7 @@
     /* 图表容器样式 */
     .chart-container {
       width: 100%;
-      height: 150px;
-      margin: 10px 0;
+      height: 200px;
       border: 1px solid #ccc;
       position: relative;
       background: white;
@@ -83,6 +122,27 @@
       padding: 5px;
       background: #f9f9f9;
       border-radius: 3px;
+    }
+    
+    .chart-labels {
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      width: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: 10px;
+      color: #666;
+      background: white; /* 确保背景色 */
+      z-index: 1; /* 确保标签在最上层 */
+    }
+    
+    .chart-label {
+      text-align: left;
+      padding-left: 5px;
     }
   </style>
 </head>
@@ -99,13 +159,31 @@
     <input type="number" id="intervalInput" value="200" min="50" max="1000">
   </div>
   
-  <div id="videoContainer">
-    <video id="capturedVideo" autoplay muted controls></video>
+  <!-- 标签页 -->
+  <div class="tabs">
+    <div class="tab active" id="chartTab">变化图表</div>
+    <div class="tab" id="videoTab">捕获画面</div>
   </div>
   
-  <!-- 图表容器 -->
-  <div class="chart-container">
-    <canvas id="chartCanvas" class="chart-line"></canvas>
+  <!-- 标签页内容 -->
+  <div class="tab-content active" id="chartContent">
+    <div class="chart-container">
+      <canvas id="chartCanvas" class="chart-line" width="370" height="200"></canvas>
+      <div class="chart-labels">
+        <div class="chart-label">50</div>
+        <div class="chart-label">40</div>
+        <div class="chart-label">30</div>
+        <div class="chart-label">20</div>
+        <div class="chart-label">10</div>
+        <div class="chart-label">0</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="tab-content" id="videoContent">
+    <div id="videoContainer">
+      <video id="capturedVideo" autoplay muted controls></video>
+    </div>
   </div>
   
   <button id="startCapture">开始捕获</button>
