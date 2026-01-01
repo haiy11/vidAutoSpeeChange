@@ -14,13 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const videoElement = document.getElementById('capturedVideo');
   const startBtn = document.getElementById('startCapture');
   const stopBtn = document.getElementById('stopCapture');
-  const intervalInput = document.getElementById('intervalInput');
   const currentChangeDiv = document.getElementById('currentChange');
+  const currentSpeedDiv = document.getElementById('currentSpeed');
   const chartCanvas = document.getElementById('chartCanvas');
   const videoTab = document.getElementById('videoTab');
   const chartTab = document.getElementById('chartTab');
   const videoContent = document.getElementById('videoContent');
   const chartContent = document.getElementById('chartContent');
+  const settingsLink = document.getElementById('settingsLink');
 
   // 检查必需的DOM元素是否存在
   if (!startBtn || !stopBtn) {
@@ -253,7 +254,17 @@ document.addEventListener('DOMContentLoaded', () => {
           currentChangeDiv.textContent = `当前变化: ${message.currentChange.toFixed(2)}%`;
         }
       }
+    } else if (message.action === 'updateCurrentSpeed') {
+      // 更新当前播放速度
+      if (currentSpeedDiv) {
+        currentSpeedDiv.textContent = `当前速度: ${message.currentSpeed.toFixed(1)}x`;
+      }
     }
+  });
+
+  // 设置链接点击事件
+  settingsLink.addEventListener('click', () => {
+    chrome.runtime.openOptionsPage();
   });
 
   // 初始化状态

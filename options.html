@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>智能变速设置</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      background-color: #fff;
+    }
+
+    .section-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #555;
+    }
+
+    .scheme-selector {
+      margin-bottom: 15px;
+    }
+
+    .scheme-selector label {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .scheme-content {
+      margin-top: 15px;
+      display: none;
+    }
+
+    .scheme-content.active {
+      display: block;
+    }
+
+    .scheme-edit-section {
+      margin-bottom: 15px;
+    }
+
+    .scheme-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 5px 10px;
+      background-color: #e9ecef;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    .scheme-header span {
+      flex: 1;
+      text-align: center;
+    }
+
+    .scheme-header span:first-child {
+      flex: 1.5;
+    }
+
+    .scheme-header span:last-child {
+      flex: 1.5;
+    }
+
+    .scheme-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      background-color: #fafafa;
+    }
+
+    .scheme-row input {
+      width: 60px;
+      padding: 5px;
+      margin: 0 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      text-align: center;
+    }
+
+    .scheme-row input[type="number"] {
+      width: 80px;
+    }
+
+    .scheme-row span {
+      margin: 0 5px;
+    }
+
+    .add-row-btn, .remove-row-btn {
+      margin-left: 10px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .add-row-btn {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .remove-row-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .edit-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .edit-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .sensitivity-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .sensitivity-value {
+      font-weight: bold;
+      font-size: 1.1em;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .sensitivity-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sensitivity-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .sensitivity-info {
+      margin-left: 10px;
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    .shortcut-section {
+      margin-top: 15px;
+    }
+
+    .shortcut-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      background-color: #fafafa;
+    }
+
+    .shortcut-label {
+      width: 180px;
+      font-weight: bold;
+    }
+
+    .shortcut-input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .shortcut-input:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 400px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .modal-title {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.2em;
+    }
+
+    .current-shortcut {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin: 15px 0;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 4px;
+    }
+
+    .modal-buttons {
+      margin-top: 20px;
+    }
+
+    .modal-btn {
+      padding: 8px 20px;
+      margin: 0 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .confirm-btn {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .cancel-btn {
+      background-color: #6c757d;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>智能变速设置</h1>
+
+    <div class="section">
+      <div class="section-title">变速方案</div>
+      
+      <div class="scheme-selector">
+        <label>当前方案：</label>
+        <select id="schemeSelect">
+          <option value="1">方案一</option>
+          <option value="2">方案二</option>
+          <option value="3">方案三</option>
+        </select>
+      </div>
+
+      <div id="scheme1Content" class="scheme-content active">
+        <div class="scheme-edit-section">
+          <div class="scheme-header">
+            <span>变化幅度区间</span>
+            <span></span>
+            <span>播放速度</span>
+          </div>
+          <div id="scheme1Rows">
+            <!-- 动态生成方案1的行 -->
+          </div>
+          <button class="add-row-btn" id="scheme1AddRowBtn" style="display:none;">添加一行</button>
+          <button class="edit-btn" id="scheme1EditBtn">进行编辑</button>
+        </div>
+      </div>
+
+      <div id="scheme2Content" class="scheme-content">
+        <div class="scheme-edit-section">
+          <div class="scheme-header">
+            <span>变化幅度区间</span>
+            <span></span>
+            <span>播放速度</span>
+          </div>
+          <div id="scheme2Rows">
+            <!-- 动态生成方案2的行 -->
+          </div>
+          <button class="add-row-btn" id="scheme2AddRowBtn" style="display:none;">添加一行</button>
+          <button class="edit-btn" id="scheme2EditBtn">进行编辑</button>
+        </div>
+      </div>
+
+      <div id="scheme3Content" class="scheme-content">
+        <div class="scheme-edit-section">
+          <div class="scheme-header">
+            <span>变化幅度区间</span>
+            <span></span>
+            <span>播放速度</span>
+          </div>
+          <div id="scheme3Rows">
+            <!-- 动态生成方案3的行 -->
+          </div>
+          <button class="add-row-btn" id="scheme3AddRowBtn" style="display:none;">添加一行</button>
+          <button class="edit-btn" id="scheme3EditBtn">进行编辑</button>
+        </div>
+      </div>
+
+      <div class="sensitivity-section">
+        <span>灵敏度：</span>
+        <button class="sensitivity-btn" id="sensitivityMinus">-</button>
+        <span class="sensitivity-value" id="sensitivityValue">3</span>
+        <button class="sensitivity-btn" id="sensitivityPlus">+</button>
+        <span class="sensitivity-info">数字越小越灵敏，数字越大越稳定</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">快捷键设置</div>
+      
+      <div class="shortcut-section">
+        <div class="shortcut-item">
+          <span class="shortcut-label">插件开启快捷键：</span>
+          <input type="text" class="shortcut-input" id="toggleShortcut" value="Alt+K" readonly>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">切换方案一快捷键：</span>
+          <input type="text" class="shortcut-input" id="scheme1Shortcut" value="Alt+1" readonly>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">切换方案二快捷键：</span>
+          <input type="text" class="shortcut-input" id="scheme2Shortcut" value="Alt+2" readonly>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">切换方案三快捷键：</span>
+          <input type="text" class="shortcut-input" id="scheme3Shortcut" value="Alt+3" readonly>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 快捷键设置模态框 -->
+  <div id="shortcutModal" class="modal">
+    <div class="modal-content">
+      <h3 class="modal-title">设置快捷键</h3>
+      <p>当前快捷键：</p>
+      <div class="current-shortcut" id="currentShortcutDisplay">Alt+K</div>
+      <p>请按下新的快捷键组合</p>
+      <div class="modal-buttons">
+        <button class="modal-btn confirm-btn" id="confirmShortcut">确认</button>
+        <button class="modal-btn cancel-btn" id="cancelShortcut">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

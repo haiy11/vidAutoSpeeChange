@@ -2,6 +2,163 @@
 
 // 全局变量
 let lastFrameData = null;
+let videoSpeedHistory = []; // 存储变化幅度历史，用于灵敏度处理
+let currentSettings = null; // 当前设置
+
+// 加载当前设置
+async function loadSettings() {
+  try {
+    const result = await chrome.storage.sync.get(['scheme', 'schemes', 'sensitivity', 'shortcuts']);
+    currentSettings = {
+      scheme: result.scheme || 1,
+      schemes: result.schemes || {
+        1: [
+          { min: 0, max: 25, speed: 1.0 },
+          { min: 26, max: 100, speed: 2.0 }
+        ],
+        2: [
+          { min: 0, max: 15, speed: 0.7 },
+          { min: 16, max: 30, speed: 1.0 },
+          { min: 31, max: 60, speed: 1.5 },
+          { min: 61, max: 100, speed: 2.0 }
+        ],
+        3: [
+          { min: 0, max: 10, speed: 0.5 },
+          { min: 11, max: 25, speed: 1.0 },
+          { min: 26, max: 50, speed: 1.5 },
+          { min: 51, max: 75, speed: 2.0 },
+          { min: 76, max: 100, speed: 2.5 }
+        ]
+      },
+      sensitivity: result.sensitivity || 3,
+      shortcuts: result.shortcuts || {
+        toggle: 'Alt+K',
+        scheme1: 'Alt+1',
+        scheme2: 'Alt+2',
+        scheme3: 'Alt+3'
+      }
+    };
+  } catch (error) {
+    console.error('加载设置失败:', error);
+    // 使用默认设置
+    currentSettings = {
+      scheme: 1,
+      schemes: {
+        1: [
+          { min: 0, max: 25, speed: 1.0 },
+          { min: 26, max: 100, speed: 2.0 }
+        ],
+        2: [
+          { min: 0, max: 15, speed: 0.7 },
+          { min: 16, max: 30, speed: 1.0 },
+          { min: 31, max: 60, speed: 1.5 },
+          { min: 61, max: 100, speed: 2.0 }
+        ],
+        3: [
+          { min: 0, max: 10, speed: 0.5 },
+          { min: 11, max: 25, speed: 1.0 },
+          { min: 26, max: 50, speed: 1.5 },
+          { min: 51, max: 75, speed: 2.0 },
+          { min: 76, max: 100, speed: 2.5 }
+        ]
+      },
+      sensitivity: 3,
+      shortcuts: {
+        toggle: 'Alt+K',
+        scheme1: 'Alt+1',
+        scheme2: 'Alt+2',
+        scheme3: 'Alt+3'
+      }
+    };
+  }
+}
+
+// 根据灵敏度处理变化幅度
+function processChangeWithSensitivity(change) {
+  // 添加新的变化幅度到历史
+  videoSpeedHistory.push(change);
+  
+  // 保持历史记录在灵敏度值的两倍以内，以防内存泄漏
+  if (videoSpeedHistory.length > currentSettings.sensitivity * 2) {
+    videoSpeedHistory = videoSpeedHistory.slice(-currentSettings.sensitivity);
+  }
+  
+  // 如果历史记录少于灵敏度设置，使用当前有的数量
+  const sensitivity = Math.min(currentSettings.sensitivity, videoSpeedHistory.length);
+  
+  if (sensitivity === 1) {
+    // 灵敏度为1：直接返回最新值
+    return videoSpeedHistory[videoSpeedHistory.length - 1];
+  } else if (sensitivity === 2) {
+    // 灵敏度为2：返回最新两个值的平均值
+    const start = Math.max(0, videoSpeedHistory.length - 2);
+    const values = videoSpeedHistory.slice(start);
+    return values.reduce((a, b) => a + b, 0) / values.length;
+  } else if (sensitivity === 3) {
+    // 灵敏度为3：去掉一个最大值和一个最小值，返回中间值
+    const start = Math.max(0, videoSpeedHistory.length - 3);
+    const values = [...videoSpeedHistory.slice(start)].sort((a, b) => a - b);
+    if (values.length >= 3) {
+      return values[1]; // 返回中间值
+    } else {
+      return values.reduce((a, b) => a + b, 0) / values.length;
+    }
+  } else if (sensitivity === 4) {
+    // 灵敏度为4：去掉一个最大值和一个最小值，返回剩余两个的平均值
+    const start = Math.max(0, videoSpeedHistory.length - 4);
+    const values = [...videoSpeedHistory.slice(start)].sort((a, b) => a - b);
+    if (values.length >= 4) {
+      // 去掉第一个（最小）和最后一个（最大），取中间两个的平均值
+      return (values[1] + values[2]) / 2;
+    } else {
+      return values.reduce((a, b) => a + b, 0) / values.length;
+    }
+  } else if (sensitivity === 5) {
+    // 灵敏度为5：去掉一个最大值和一个最小值，返回剩余三个的平均值
+    const start = Math.max(0, videoSpeedHistory.length - 5);
+    const values = [...videoSpeedHistory.slice(start)].sort((a, b) => a - b);
+    if (values.length >= 5) {
+      // 去掉第一个（最小）和最后一个（最大），取中间三个的平均值
+      return (values[1] + values[2] + values[3]) / 3;
+    } else {
+      return values.reduce((a, b) => a + b, 0) / values.length;
+    }
+  }
+}
+
+// 根据变化幅度和当前方案调整视频播放速度
+function adjustVideoSpeed(change) {
+  if (!currentSettings) return;
+  
+  // 处理变化幅度
+  const processedChange = processChangeWithSensitivity(change);
+  const changePercent = processedChange * 100; // 转换为百分比
+  
+  // 获取当前方案的设置
+  const scheme = currentSettings.schemes[currentSettings.scheme];
+  
+  // 查找对应的播放速度
+  for (const range of scheme) {
+    if (changePercent >= range.min && changePercent <= range.max) {
+      // 找到匹配的范围，调整播放速度
+      const videos = document.querySelectorAll('video');
+      videos.forEach(video => {
+        // 确保视频已加载
+        if (video.readyState >= 1) {
+          video.playbackRate = range.speed;
+          // 向popup发送当前播放速度
+          chrome.runtime.sendMessage({
+            action: 'updateCurrentSpeed',
+            currentSpeed: range.speed
+          }).catch(() => {
+            // 忽略错误，因为popup可能未打开
+          });
+        }
+      });
+      break; // 找到匹配项后退出循环
+    }
+  }
+}
 
 // 监听来自扩展的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -270,6 +427,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             // 结合边缘变化和亮度变化，边缘变化权重更高
             const combinedChange = (edgeChange * 0.7) + (brightnessChange * 0.3);
             
+            // 调整视频播放速度
+            adjustVideoSpeed(combinedChange / 100); // 转换回0-1范围
+            
             resolve(combinedChange);
           } catch (error) {
             console.error('处理图像时出错:', error);
@@ -405,4 +565,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
     return true; // 保持消息通道开放以进行异步响应
   }
+  
+  // 监听设置更新
+  if (request.action === 'updateSettings') {
+    currentSettings = request.settings;
+    sendResponse({ success: true });
+    return true;
+  }
 });
+
+// 监听设置变化
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'sync' && (changes.scheme || changes.schemes || changes.sensitivity || changes.shortcuts)) {
+    loadSettings();
+  }
+});
+
+// 初始化设置
+loadSettings();

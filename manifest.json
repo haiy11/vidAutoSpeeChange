@@ -38,5 +38,6 @@
       "resources": ["offscreen.html", "offscreen.js"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "options_page": "options.html"
 }

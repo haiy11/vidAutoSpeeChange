@@ -88,21 +88,7 @@
     
     /* 添加间隔输入样式 */
     .interval-control {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    
-    .interval-control label {
-      margin-right: 10px;
-      font-size: 14px;
-    }
-    
-    .interval-control input {
-      flex: 1;
-      padding: 5px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
+      display: none; /* 隐藏间隔输入 */
     }
     
     /* 图表容器样式 */
@@ -115,6 +101,8 @@
     }
     
     .current-change {
+      display: flex;
+      justify-content: space-between;
       text-align: center;
       font-size: 18px;
       font-weight: bold;
@@ -122,6 +110,10 @@
       padding: 5px;
       background: #f9f9f9;
       border-radius: 3px;
+    }
+    
+    .current-change div {
+      flex: 1;
     }
     
     .chart-labels {
@@ -144,16 +136,43 @@
       text-align: left;
       padding-left: 5px;
     }
+    
+    .settings-link {
+      color: #666;
+      cursor: pointer;
+      display: inline;
+      text-decoration: none;
+      font-weight: normal;
+      font-size: 1.17em;
+    }
+    
+    .settings-link:hover {
+      color: #333;
+      text-decoration: none;
+    }
+    
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
   </style>
 </head>
 <body>
-  <h3>视频捕获预览</h3>
+  <div class="header-container">
+    <h3>视频捕获预览</h3>
+    <div class="settings-link" id="settingsLink">设置</div>
+  </div>
+  
   <div id="status" class="info">等待初始化...</div>
   
-  <!-- 显示当前变化幅度 -->
-  <div id="currentChange" class="current-change">当前变化: --%</div>
+  <!-- 显示当前变化幅度和播放速度 -->
+  <div class="current-change">
+    <div id="currentChange">当前变化: --%</div>
+    <div id="currentSpeed">当前速度: --x</div>
+  </div>
   
-  <!-- 添加间隔时间输入 -->
+  <!-- 添加间隔时间输入（已隐藏） -->
   <div class="interval-control">
     <label for="intervalInput">捕获间隔(毫秒):</label>
     <input type="number" id="intervalInput" value="200" min="50" max="1000">

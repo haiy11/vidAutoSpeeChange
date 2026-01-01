@@ -1,4 +1,4 @@
-// background.js
+// c
 // 存储视频检测状态
 let hasVideo = false;
 let captureStatus = false; // 捕获状态，需要持久化
@@ -226,9 +226,9 @@ function startCapture() {
     clearInterval(captureInterval);
   }
   
-  // 每0.2秒捕获一次
-  captureInterval = setInterval(captureCurrentPageFrame, 200);
-  console.log("✅ 开始定时捕获，间隔: 200ms");
+  // 每0.1秒捕获一次
+  captureInterval = setInterval(captureCurrentPageFrame, 100);
+  console.log("✅ 开始定时捕获，间隔: 100ms");
 }
 
 // 停止定时捕获
