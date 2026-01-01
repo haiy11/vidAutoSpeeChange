@@ -201,10 +201,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
     return true;
   }
-// 添加计算帧变化幅度的辅助函数
+  
+  // 添加计算帧变化幅度的辅助函数
   if (request.action === "calculateFrameChange") {
     const currentFrame = request.currentFrame;
-    const lastFrame = lastFrameData;
+    const lastFrame = request.lastFrame || lastFrameData;
     
     if (!lastFrame) {
       lastFrameData = currentFrame;

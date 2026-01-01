@@ -3,7 +3,7 @@
   "name": "智能变速",
   "version": "1.0",
   "description": "根据画面变化速度自动调节播放速度",
-  "permissions": ["activeTab", "tabCapture","scripting","offscreen"],
+  "permissions": ["activeTab", "tabCapture","scripting","offscreen", "storage"],
    "host_permissions": [
     "<all_urls>"
   ],
