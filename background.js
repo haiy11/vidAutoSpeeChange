@@ -16,7 +16,7 @@ async function initializeCaptureStatus() {
   try {
     const result = await chrome.storage.local.get(['captureStatus']);
     captureStatus = result.captureStatus || false;
-    console.log('初始化捕获状态:', captureStatus);
+    // console.log('初始化捕获状态:', captureStatus);
   } catch (error) {
     console.error('初始化捕获状态失败:', error);
     captureStatus = false; // 默认为关闭状态
@@ -106,14 +106,14 @@ async function captureCurrentPageFrame() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     
     if (!tab) {
-      console.log("未找到活动标签页");
+      // console.log("未找到活动标签页");
       return;
     }
     
     // 检查是否有视频元素
     const videoInfo = await checkForVideos(tab.id);
     if (!videoInfo.hasVideo) {
-      console.log("当前页面没有视频元素");
+      // console.log("当前页面没有视频元素");
       return;
     }
     
@@ -121,13 +121,13 @@ async function captureCurrentPageFrame() {
     const smartCaptureResponse = await chrome.tabs.sendMessage(tab.id, {action: "smartCapture"});
     
     if (smartCaptureResponse.success) {
-      console.log("✅ 定时捕获成功：直接捕获视频元素");
-      console.log(`📊 捕获信息 - 方法: direct, 尺寸: ${smartCaptureResponse.width}x${smartCaptureResponse.height}`);
+      // console.log("✅ 定时捕获成功：直接捕获视频元素");
+      // console.log(`📊 捕获信息 - 方法: direct, 尺寸: ${smartCaptureResponse.width}x${smartCaptureResponse.height}`);
       
       // 计算帧变化幅度
       const changeAmount = await calculateFrameChange(lastFrame, smartCaptureResponse.imageDataUrl);
       lastFrame = smartCaptureResponse.imageDataUrl;
-      console.log(`📊 画面变化幅度: ${changeAmount.toFixed(2)}`);
+      // console.log(`📊 画面变化幅度: ${changeAmount.toFixed(2)}`);
       
       // 添加到图表
       addChangeValue(changeAmount);
@@ -142,13 +142,13 @@ async function captureCurrentPageFrame() {
         // 忽略错误，因为popup可能未打开
       });
     } else {
-      console.log("⚠️ 定时捕获失败:", smartCaptureResponse.reason);
+      // console.log("⚠️ 定时捕获失败:", smartCaptureResponse.reason);
       
       // 如果直接捕获失败，尝试tabCapture方法
       await captureTabFrame(tab);
     }
   } catch (error) {
-    console.log("⚠️ 定时捕获异常:", error.message);
+    // console.log("⚠️ 定时捕获异常:", error.message);
   }
 }
 
@@ -160,7 +160,7 @@ async function captureTabFrame(tab) {
       targetTabId: tab.id
     });
     
-    console.log("✅ 成功获取视频流ID:", streamId);
+    // console.log("✅ 成功获取视频流ID:", streamId);
     
     // 创建offscreen页面处理视频流
     try {
@@ -195,7 +195,7 @@ async function captureTabFrame(tab) {
         // 计算帧变化幅度
         const changeAmount = await calculateFrameChange(lastFrame, response.imageDataUrl);
         lastFrame = response.imageDataUrl;
-        console.log(`📊 画面变化幅度: ${changeAmount.toFixed(2)}`);
+        // console.log(`📊 画面变化幅度: ${changeAmount.toFixed(2)}`);
         
         // 添加到图表
         addChangeValue(changeAmount);
@@ -226,9 +226,9 @@ function startCapture() {
     clearInterval(captureInterval);
   }
   
-  // 每0.1秒捕获一次
-  captureInterval = setInterval(captureCurrentPageFrame, 100);
-  console.log("✅ 开始定时捕获，间隔: 100ms");
+  // 每0.2秒捕获一次
+  captureInterval = setInterval(captureCurrentPageFrame, 200);
+  // console.log("✅ 开始定时捕获，间隔: 200ms");
 }
 
 // 停止定时捕获
@@ -237,7 +237,7 @@ function stopCapture() {
     clearInterval(captureInterval);
     captureInterval = null;
   }
-  console.log("⏹️ 停止定时捕获");
+  // console.log("⏹️ 停止定时捕获");
 }
 
 // 主功能：获取视频流ID
@@ -248,7 +248,7 @@ async function getVideoStreamId(tab) {
     hasVideo = videoInfo.hasVideo;
     
     if (!hasVideo) {
-      console.log('当前页面没有检测到视频元素');
+      // console.log('当前页面没有检测到视频元素');
       // 更新扩展图标状态
       chrome.action.setIcon({
         path: {
@@ -261,7 +261,7 @@ async function getVideoStreamId(tab) {
       return;
     }
     
-    console.log(`检测到视频: ${videoInfo.totalVideos}个，正在播放: ${videoInfo.playingVideos}个`);
+    // console.log(`检测到视频: ${videoInfo.totalVideos}个，正在播放: ${videoInfo.playingVideos}个`);
     
     // 2. 如果已有活动流，先尝试关闭
     if (activeStreamId) {
@@ -269,7 +269,7 @@ async function getVideoStreamId(tab) {
         // 尝试关闭offscreen document
         await chrome.offscreen.closeDocument();
       } catch (e) {
-        console.log("关闭offscreen document时出错:", e);
+        // console.log("关闭offscreen document时出错:", e);
       }
     }
     
@@ -281,7 +281,7 @@ async function getVideoStreamId(tab) {
     // 更新活动流ID
     activeStreamId = streamId;
     
-    console.log("✅ 成功获取视频流ID:", streamId);
+    // console.log("✅ 成功获取视频流ID:", streamId);
     
     // 4. 验证视频流 - 创建一个offscreen document来处理媒体流
     try {
@@ -364,15 +364,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.tabs.query({active: true, currentWindow: true}, async (tabs) => {
       if (tabs.length > 0) {
         try {
-          console.log("📥 收到获取视频流ID的请求");
+          // console.log("📥 收到获取视频流ID的请求");
           
           // 如果已有活动流，先尝试清理
           if (activeStreamId) {
-            console.log("⚠️ 已存在活动流，尝试清理...");
+            // console.log("⚠️ 已存在活动流，尝试清理...");
             try {
               await chrome.offscreen.closeDocument();
             } catch (e) {
-              console.log("关闭offscreen document时出错:", e);
+              // console.log("关闭offscreen document时出错:", e);
             }
           }
           
@@ -383,14 +383,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           // 更新活动流ID
           activeStreamId = streamId;
           
-          console.log("📤 返回视频流ID:", streamId);
+          // console.log("📤 返回视频流ID:", streamId);
           sendResponse({success: true, streamId: streamId});
         } catch (error) {
           console.error("❌ 获取视频流ID失败:", error);
           sendResponse({success: false, error: error.message});
         }
       } else {
-        console.log("❌ 未找到活动标签页");
+        // console.log("❌ 未找到活动标签页");
         sendResponse({success: false, error: "No active tab found"});
       }
     });
@@ -405,10 +405,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // 关闭offscreen页面
     chrome.offscreen.closeDocument()
       .then(() => {
-        console.log("✅ 已关闭offscreen页面");
+        // console.log("✅ 已关闭offscreen页面");
       })
       .catch((e) => {
-        console.log("⚠️ 关闭offscreen页面时出错:", e);
+        // console.log("⚠️ 关闭offscreen页面时出错:", e);
       });
     
     sendResponse({ success: true });
@@ -434,7 +434,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // 处理offscreen页面的响应（如果需要）
   if (message.target === 'background' && message.source === 'offscreen') {
-    console.log('收到offscreen页面的消息:', message);
+    // console.log('收到offscreen页面的消息:', message);
   }
   
   // 处理开始/停止捕获的请求
@@ -481,7 +481,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.runtime.onSuspend.addListener(() => {
   if (activeStreamId) {
     chrome.offscreen.closeDocument().catch(e => {
-      console.log("关闭offscreen document时出错:", e);
+      // console.log("关闭offscreen document时出错:", e);
     });
     activeStreamId = null;
   }

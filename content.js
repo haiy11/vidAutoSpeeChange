@@ -8,35 +8,44 @@ let currentSettings = null; // 当前设置
 // 加载当前设置
 async function loadSettings() {
   try {
-    const result = await chrome.storage.sync.get(['scheme', 'schemes', 'sensitivity', 'shortcuts']);
+    const result = await chrome.storage.sync.get(['scheme', 'schemes', 'sensitivity']);
     currentSettings = {
       scheme: result.scheme || 1,
       schemes: result.schemes || {
         1: [
-          { min: 0, max: 25, speed: 1.0 },
-          { min: 26, max: 100, speed: 2.0 }
+          { min: 0, max: 5, speed: 2.0 },
+          { min: 5, max: 8, speed: 1.9 },
+          { min: 8, max: 11, speed: 1.8 },
+          { min: 11, max: 13, speed: 1.7 },
+          { min: 13, max: 14, speed: 1.6 },
+          { min: 14, max: 15, speed: 1.5 },
+          { min: 15, max: 16, speed: 1.4 },
+          { min: 16, max: 17, speed: 1.3 },
+          { min: 17, max: 19, speed: 1.2 },
+          { min: 19, max: 22, speed: 1.1 },
+          { min: 22, max: 25, speed: 1.0 },
+          { min: 25, max: 30, speed: 0.9 },
+          { min: 30, max: 35, speed: 0.8 },
+          { min: 35, max: 40, speed: 0.7 },
+          { min: 40, max: 45, speed: 0.6 },
+          { min: 45, max: 50, speed: 0.5 },
+          { min: 50, max: 60, speed: 0.4 },
+          { min: 60, max: 70, speed: 0.3 },
+          { min: 70, max: 80, speed: 0.2 },
+          { min: 80, max: 100, speed: 0.1 }
         ],
         2: [
-          { min: 0, max: 15, speed: 0.7 },
-          { min: 16, max: 30, speed: 1.0 },
-          { min: 31, max: 60, speed: 1.5 },
-          { min: 61, max: 100, speed: 2.0 }
+          { min: 0, max: 15, speed: 2.0 },
+          { min: 15, max: 30, speed: 1.0 },
+          { min: 30, max: 60, speed: 0.7 },
+          { min: 60, max: 100, speed: 0.5 }
         ],
         3: [
-          { min: 0, max: 10, speed: 0.5 },
-          { min: 11, max: 25, speed: 1.0 },
-          { min: 26, max: 50, speed: 1.5 },
-          { min: 51, max: 75, speed: 2.0 },
-          { min: 76, max: 100, speed: 2.5 }
+          { min: 0, max: 25, speed: 2.0 },
+          { min: 25, max: 100, speed: 1.0 }
         ]
       },
-      sensitivity: result.sensitivity || 3,
-      shortcuts: result.shortcuts || {
-        toggle: 'Alt+K',
-        scheme1: 'Alt+1',
-        scheme2: 'Alt+2',
-        scheme3: 'Alt+3'
-      }
+      sensitivity: result.sensitivity || 3
     };
   } catch (error) {
     console.error('加载设置失败:', error);
@@ -45,30 +54,39 @@ async function loadSettings() {
       scheme: 1,
       schemes: {
         1: [
-          { min: 0, max: 25, speed: 1.0 },
-          { min: 26, max: 100, speed: 2.0 }
+          { min: 0, max: 5, speed: 2.0 },
+          { min: 5, max: 8, speed: 1.9 },
+          { min: 8, max: 11, speed: 1.8 },
+          { min: 11, max: 13, speed: 1.7 },
+          { min: 13, max: 14, speed: 1.6 },
+          { min: 14, max: 15, speed: 1.5 },
+          { min: 15, max: 16, speed: 1.4 },
+          { min: 16, max: 17, speed: 1.3 },
+          { min: 17, max: 19, speed: 1.2 },
+          { min: 19, max: 22, speed: 1.1 },
+          { min: 22, max: 25, speed: 1.0 },
+          { min: 25, max: 30, speed: 0.9 },
+          { min: 30, max: 35, speed: 0.8 },
+          { min: 35, max: 40, speed: 0.7 },
+          { min: 40, max: 45, speed: 0.6 },
+          { min: 45, max: 50, speed: 0.5 },
+          { min: 50, max: 60, speed: 0.4 },
+          { min: 60, max: 70, speed: 0.3 },
+          { min: 70, max: 80, speed: 0.2 },
+          { min: 80, max: 100, speed: 0.1 }
         ],
         2: [
-          { min: 0, max: 15, speed: 0.7 },
-          { min: 16, max: 30, speed: 1.0 },
-          { min: 31, max: 60, speed: 1.5 },
-          { min: 61, max: 100, speed: 2.0 }
+          { min: 0, max: 15, speed: 2.0 },
+          { min: 15, max: 30, speed: 1.0 },
+          { min: 30, max: 60, speed: 0.7 },
+          { min: 60, max: 100, speed: 0.5 }
         ],
         3: [
-          { min: 0, max: 10, speed: 0.5 },
-          { min: 11, max: 25, speed: 1.0 },
-          { min: 26, max: 50, speed: 1.5 },
-          { min: 51, max: 75, speed: 2.0 },
-          { min: 76, max: 100, speed: 2.5 }
+          { min: 0, max: 25, speed: 2.0 },
+          { min: 25, max: 100, speed: 1.0 }
         ]
       },
-      sensitivity: 3,
-      shortcuts: {
-        toggle: 'Alt+K',
-        scheme1: 'Alt+1',
-        scheme2: 'Alt+2',
-        scheme3: 'Alt+3'
-      }
+      sensitivity: 3
     };
   }
 }
@@ -235,7 +253,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           height: canvas.height
         });
       } catch (error) {
-        console.log("直接捕获视频帧失败:", error);
+        // console.log("直接捕获视频帧失败:", error);
         sendResponse({success: false, error: error.message, reason: "draw_failed"});
       }
     } else {
@@ -253,28 +271,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       return true;
     }
     
-    console.log(`🔍 尝试智能捕获，共找到 ${videos.length} 个视频元素`);
+    // console.log(`🔍 尝试智能捕获，共找到 ${videos.length} 个视频元素`);
     
     // 尝试捕获每个视频
     for (let i = 0; i < videos.length; i++) {
       const video = videos[i];
       
-      console.log(`🔍 检查视频 ${i}:`, {
-        readyState: video.readyState,
-        videoWidth: video.videoWidth,
-        videoHeight: video.videoHeight,
-        src: video.src,
-        currentSrc: video.currentSrc
-      });
+      // console.log(`🔍 检查视频 ${i}:`, { readyState: video.readyState, videoWidth: video.videoWidth, videoHeight: video.videoHeight, src: video.src, currentSrc: video.currentSrc});
       
       // 检查视频是否适合捕获
       if (video.readyState < 2) {
-        console.log(`⏭️ 视频 ${i} 尚未准备好 (readyState: ${video.readyState})`);
+        // console.log(`⏭️ 视频 ${i} 尚未准备好 (readyState: ${video.readyState})`);
         continue;
       }
       
       if (video.videoWidth === 0 || video.videoHeight === 0) {
-        console.log(`⏭️ 视频 ${i} 尺寸无效 (${video.videoWidth}x${video.videoHeight})`);
+        // console.log(`⏭️ 视频 ${i} 尺寸无效 (${video.videoWidth}x${video.videoHeight})`);
         continue;
       }
       
@@ -289,7 +301,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         
         // 成功，返回结果
         const imageDataUrl = canvas.toDataURL('image/png');
-        console.log(`✅ 成功捕获视频 ${i} 的画面`);
+        // console.log(`✅ 成功捕获视频 ${i} 的画面`);
         
         sendResponse({
           success: true,
@@ -301,14 +313,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
         return true;
       } catch (e) {
-        console.log(`⚠️ 尝试捕获视频 ${i} 失败:`, e.message);
+        // console.log(`⚠️ 尝试捕获视频 ${i} 失败:`, e.message);
         // 继续尝试下一个视频
         continue;
       }
     }
     
     // 如果所有视频都无法直接捕获
-    console.log("❌ 所有视频都无法直接捕获");
+    // console.log("❌ 所有视频都无法直接捕获");
     sendResponse({
       success: false,
       method: "direct_failed",
@@ -576,7 +588,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // 监听设置变化
 chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync' && (changes.scheme || changes.schemes || changes.sensitivity || changes.shortcuts)) {
+  if (namespace === 'sync' && (changes.scheme || changes.schemes || changes.sensitivity )) {
     loadSettings();
   }
 });

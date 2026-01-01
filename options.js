@@ -32,39 +32,46 @@ document.addEventListener('DOMContentLoaded', function() {
   // 默认方案设置
   const defaultSchemes = {
     1: [
-      { min: 0, max: 25, speed: 1.0 },
-      { min: 26, max: 100, speed: 2.0 }
+      { min: 0, max: 5, speed: 2.0 },
+      { min: 5, max: 8, speed: 1.9 },
+      { min: 8, max: 11, speed: 1.8 },
+      { min: 11, max: 13, speed: 1.7 },
+      { min: 13, max: 14, speed: 1.6 },
+      { min: 14, max: 15, speed: 1.5 },
+      { min: 15, max: 16, speed: 1.4 },
+      { min: 16, max: 17, speed: 1.3 },
+      { min: 17, max: 19, speed: 1.2 },
+      { min: 19, max: 22, speed: 1.1 },
+      { min: 22, max: 25, speed: 1.0 },
+      { min: 25, max: 30, speed: 0.9 },
+      { min: 30, max: 35, speed: 0.8 },
+      { min: 35, max: 40, speed: 0.7 },
+      { min: 40, max: 45, speed: 0.6 },
+      { min: 45, max: 50, speed: 0.5 },
+      { min: 50, max: 60, speed: 0.4 },
+      { min: 60, max: 70, speed: 0.3 },
+      { min: 70, max: 80, speed: 0.2 },
+      { min: 80, max: 100, speed: 0.1 }
     ],
     2: [
-      { min: 0, max: 15, speed: 0.7 },
-      { min: 16, max: 30, speed: 1.0 },
-      { min: 31, max: 60, speed: 1.5 },
-      { min: 61, max: 100, speed: 2.0 }
+      { min: 0, max: 15, speed: 2.0 },
+      { min: 15, max: 30, speed: 1.0 },
+      { min: 30, max: 60, speed: 0.7 },
+      { min: 60, max: 100, speed: 0.5 }
     ],
     3: [
-      { min: 0, max: 10, speed: 0.5 },
-      { min: 11, max: 25, speed: 1.0 },
-      { min: 26, max: 50, speed: 1.5 },
-      { min: 51, max: 75, speed: 2.0 },
-      { min: 76, max: 100, speed: 2.5 }
+      { min: 0, max: 25, speed: 2.0 },
+      { min: 25, max: 100, speed: 1.0 }
     ]
   };
 
   // 默认灵敏度
   const defaultSensitivity = 3;
 
-  // 默认快捷键
-  const defaultShortcuts = {
-    toggle: 'Alt+K',
-    scheme1: 'Alt+1',
-    scheme2: 'Alt+2',
-    scheme3: 'Alt+3'
-  };
-
   // 加载设置
   async function loadSettings() {
     try {
-      const result = await chrome.storage.sync.get(['scheme', 'schemes', 'sensitivity', 'shortcuts']);
+      const result = await chrome.storage.sync.get(['scheme', 'schemes', 'sensitivity']);
       
       // 设置当前方案
       const currentScheme = result.scheme || 1;
@@ -80,13 +87,6 @@ document.addEventListener('DOMContentLoaded', function() {
       // 设置灵敏度
       const sensitivity = result.sensitivity || defaultSensitivity;
       sensitivityValue.textContent = sensitivity;
-      
-      // 设置快捷键
-      const shortcuts = result.shortcuts || defaultShortcuts;
-      toggleShortcut.value = shortcuts.toggle || defaultShortcuts.toggle;
-      scheme1Shortcut.value = shortcuts.scheme1 || defaultShortcuts.scheme1;
-      scheme2Shortcut.value = shortcuts.scheme2 || defaultShortcuts.scheme2;
-      scheme3Shortcut.value = shortcuts.scheme3 || defaultShortcuts.scheme3;
     } catch (error) {
       console.error('加载设置失败:', error);
     }
@@ -138,6 +138,17 @@ document.addEventListener('DOMContentLoaded', function() {
       if (value < 0) value = 0;
       if (value > 100) value = 100;
       this.value = value;
+      
+      // 当修改最小值时，如果当前行不是第一行，同时更新上一行的最大值
+      if (index > 0) {
+        const prevRow = rowDiv.previousElementSibling;
+        if (prevRow) {
+          const prevMaxInput = prevRow.querySelector('.max-input');
+          if (prevMaxInput) {
+            prevMaxInput.value = value;
+          }
+        }
+      }
     });
     
     maxInput.addEventListener('change', function() {
@@ -145,6 +156,18 @@ document.addEventListener('DOMContentLoaded', function() {
       if (value < 0) value = 0;
       if (value > 100) value = 100;
       this.value = value;
+      
+      // 当修改最大值时，如果当前行不是最后一行，同时更新下一行的最小值
+      const container = rowDiv.parentElement;
+      if (index < container.children.length - 1) {
+        const nextRow = rowDiv.nextElementSibling;
+        if (nextRow) {
+          const nextMinInput = nextRow.querySelector('.min-input');
+          if (nextMinInput) {
+            nextMinInput.value = value;
+          }
+        }
+      }
     });
     
     speedInput.addEventListener('change', function() {
@@ -205,10 +228,10 @@ document.addEventListener('DOMContentLoaded', function() {
       return false;
     }
     
-    // 检查区间是否连续且无重叠
+    // 检查区间是否连续且无重叠 - 修正：区间应是连续的，上一行的max应等于下一行的min
     for (let i = 0; i < rows.length - 1; i++) {
-      if (rows[i].max >= rows[i + 1].min) {
-        alert(`第${i + 1}行和第${i + 2}行的区间有重叠或不连续`);
+      if (rows[i].max !== rows[i + 1].min) {
+        alert(`第${i + 1}行的右区间(${rows[i].max})必须等于第${i + 2}行的左区间(${rows[i + 1].min})，以确保区间连续`);
         return false;
       }
     }
@@ -293,7 +316,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 添加添加行按钮事件
         addRowBtn.onclick = function() {
-          const newRowData = { min: 1, max: 25, speed: 1.0 };
+          const container = document.getElementById(`scheme${schemeNum}Rows`);
+          const lastRow = container.lastElementChild;
+          let newMin = 1;
+          let newMax = 25;
+          
+          if (lastRow) {
+            const lastMaxValue = parseInt(lastRow.querySelector('.max-input').value);
+            newMin = lastMaxValue;
+            newMax = Math.min(100, lastMaxValue + 25);
+          }
+          
+          const newRowData = { min: newMin, max: newMax, speed: 1.0 };
           const newRowElement = createSchemeRow(schemeNum, container.children.length, newRowData);
           container.appendChild(newRowElement);
           
@@ -338,83 +372,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('保存灵敏度失败:', error);
       }
     }
-  });
-
-  // 快捷键输入框点击事件
-  function setupShortcutInput(input, key) {
-    input.addEventListener('click', function() {
-      currentEditingInput = { input: this, key: key };
-      currentShortcutDisplay.textContent = this.value;
-      shortcutModal.style.display = 'flex';
-    });
-  }
-
-  setupShortcutInput(toggleShortcut, 'toggle');
-  setupShortcutInput(scheme1Shortcut, 'scheme1');
-  setupShortcutInput(scheme2Shortcut, 'scheme2');
-  setupShortcutInput(scheme3Shortcut, 'scheme3');
-
-  // 监听键盘事件来设置快捷键
-  document.addEventListener('keydown', function(e) {
-    if (shortcutModal.style.display === 'flex' && currentEditingInput) {
-      e.preventDefault();
-      
-      // 检查是否包含修饰键
-      if (e.altKey || e.ctrlKey || e.shiftKey) {
-        let shortcut = '';
-        
-        if (e.altKey) shortcut += 'Alt+';
-        if (e.ctrlKey) shortcut += 'Ctrl+';
-        if (e.shiftKey) shortcut += 'Shift+';
-        
-        // 添加主键
-        if (e.key.length === 1 || /^[0-9]$/.test(e.key)) {
-          shortcut += e.key.toUpperCase();
-        } else if (e.key === ' ') {
-          shortcut += 'Space';
-        } else if (e.key === 'ArrowUp') {
-          shortcut += 'Up';
-        } else if (e.key === 'ArrowDown') {
-          shortcut += 'Down';
-        } else if (e.key === 'ArrowLeft') {
-          shortcut += 'Left';
-        } else if (e.key === 'ArrowRight') {
-          shortcut += 'Right';
-        } else if (e.key.length === 1) {
-          shortcut += e.key.toUpperCase();
-        } else {
-          shortcut += e.key;
-        }
-        
-        currentShortcutDisplay.textContent = shortcut;
-      }
-    }
-  });
-
-  // 确认快捷键
-  confirmShortcut.addEventListener('click', async function() {
-    if (currentEditingInput) {
-      const newShortcut = currentShortcutDisplay.textContent;
-      currentEditingInput.input.value = newShortcut;
-      
-      try {
-        const result = await chrome.storage.sync.get(['shortcuts']);
-        const shortcuts = result.shortcuts || defaultShortcuts;
-        shortcuts[currentEditingInput.key] = newShortcut;
-        await chrome.storage.sync.set({ shortcuts: shortcuts });
-      } catch (error) {
-        console.error('保存快捷键失败:', error);
-      }
-    }
-    
-    shortcutModal.style.display = 'none';
-    currentEditingInput = null;
-  });
-
-  // 取消快捷键设置
-  cancelShortcut.addEventListener('click', function() {
-    shortcutModal.style.display = 'none';
-    currentEditingInput = null;
   });
 
   // 初始化设置

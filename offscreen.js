@@ -41,12 +41,12 @@ async function handleStream(streamId) {
     
     // 等待视频元素准备好
     videoElement.onloadedmetadata = () => {
-      console.log('✅ 视频流已加载到offscreen页面');
+      // console.log('✅ 视频流已加载到offscreen页面');
     };
     
     // 确保视频元素开始播放
     videoElement.play().catch(error => {
-      console.log('⚠️ 视频播放失败:', error);
+      // console.log('⚠️ 视频播放失败:', error);
     });
   } catch (error) {
     console.error('❌ 获取媒体流失败:', error);
@@ -64,7 +64,7 @@ function captureFrame() {
   try {
     // 确保视频元素已加载且正在播放
     if (videoElement.readyState < videoElement.HAVE_CURRENT_DATA) {
-      console.log('⚠️ 视频尚未准备好，当前状态:', videoElement.readyState);
+      // console.log('⚠️ 视频尚未准备好，当前状态:', videoElement.readyState);
       return { success: false, error: 'Video not ready', readyState: videoElement.readyState };
     }
 
