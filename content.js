@@ -291,16 +291,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
       
       try {
+        // 1：计算缩放后的尺寸
+        let targetWidth = video.videoWidth;
+        let targetHeight = video.videoHeight;
+        
+        // 循环除以2直到两个边长都≤480
+        while (targetWidth > 480 || targetHeight > 480) {
+          targetWidth = Math.floor(targetWidth / 2);
+          targetHeight = Math.floor(targetHeight / 2);
+        }
+        
+
         const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
         const ctx = canvas.getContext('2d');
         
-        // 尝试绘制
-        ctx.drawImage(video, 0, 0);
+        // 2：绘制时使用目标尺寸
+        ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
         
-        // 成功，返回结果
-        const imageDataUrl = canvas.toDataURL('image/png');
+        // 3：使用JPEG格式代替PNG
+        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        
         // console.log(`✅ 成功捕获视频 ${i} 的画面`);
         
         sendResponse({
@@ -309,7 +321,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           videoIndex: i,
           imageDataUrl: imageDataUrl,
           width: canvas.width,
-          height: canvas.height
+          height: canvas.height,
+          originalWidth: video.videoWidth,
+          originalHeight: video.videoHeight
         });
         return true;
       } catch (e) {
@@ -319,15 +333,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     }
     
-    // 如果所有视频都无法直接捕获
-    // console.log("❌ 所有视频都无法直接捕获");
-    sendResponse({
-      success: false,
-      method: "direct_failed",
-      reason: "all_direct_attempts_failed",
-      videoCount: videos.length
-    });
-    
+    // 所有视频都尝试失败
+    sendResponse({success: false, reason: "all_capture_failed"});
     return true;
   }
   
@@ -406,8 +413,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         const processImages = () => {
           try {
             // 设置canvas尺寸，使用较小的尺寸以提高性能
-            const width = Math.min(img1.width, img2.width, 160);  // 限制最大宽度以提高性能
-            const height = Math.min(img1.height, img2.height, 120); // 限制最大高度以提高性能
+            const width = Math.min(img1.width, img2.width, 480);  // 限制最大宽度以提高性能
+            const height = Math.min(img1.height, img2.height, 480); // 限制最大高度以提高性能
             
             // 如果任一图片尺寸为0，则返回0
             if (width <= 0 || height <= 0) {
