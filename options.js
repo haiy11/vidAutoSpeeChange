@@ -17,17 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const sensitivityValue = document.getElementById('sensitivityValue');
   const sensitivityPlus = document.getElementById('sensitivityPlus');
   const sensitivityMinus = document.getElementById('sensitivityMinus');
-  const toggleShortcut = document.getElementById('toggleShortcut');
-  const scheme1Shortcut = document.getElementById('scheme1Shortcut');
-  const scheme2Shortcut = document.getElementById('scheme2Shortcut');
-  const scheme3Shortcut = document.getElementById('scheme3Shortcut');
-  const shortcutModal = document.getElementById('shortcutModal');
-  const currentShortcutDisplay = document.getElementById('currentShortcutDisplay');
-  const confirmShortcut = document.getElementById('confirmShortcut');
-  const cancelShortcut = document.getElementById('cancelShortcut');
-
-  // 存储当前编辑的快捷键输入框
-  let currentEditingInput = null;
+  const maxResolutionInput = document.getElementById('maxResolutionInput');
+  const resolutionEditBtn = document.getElementById('resolutionEditBtn');
 
   // 默认方案设置
   const defaultSchemes = {
@@ -68,10 +59,13 @@ document.addEventListener('DOMContentLoaded', function() {
   // 默认灵敏度
   const defaultSensitivity = 3;
 
+  // 默认最大分辨率
+  const defaultMaxResolution = 480;
+
   // 加载设置
   async function loadSettings() {
     try {
-      const result = await chrome.storage.sync.get(['scheme', 'schemes', 'sensitivity']);
+      const result = await chrome.storage.sync.get(['scheme', 'schemes', 'sensitivity', 'maxResolution']);
       
       // 设置当前方案
       const currentScheme = result.scheme || 1;
@@ -87,6 +81,10 @@ document.addEventListener('DOMContentLoaded', function() {
       // 设置灵敏度
       const sensitivity = result.sensitivity || defaultSensitivity;
       sensitivityValue.textContent = sensitivity;
+
+      // 设置最大分辨率
+      const maxResolution = result.maxResolution || defaultMaxResolution;
+      maxResolutionInput.value = maxResolution;
     } catch (error) {
       console.error('加载设置失败:', error);
     }
@@ -371,6 +369,67 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch (error) {
         console.error('保存灵敏度失败:', error);
       }
+    }
+  });
+
+
+  // 初始化设置之前添加分辨率编辑按钮逻辑
+  let isEditingResolution = false;
+
+  resolutionEditBtn.addEventListener('click', async function() {
+    if (isEditingResolution) {
+      // 保存设置
+      let resolution = parseInt(maxResolutionInput.value);
+      
+      // 验证分辨率
+      if (isNaN(resolution) || resolution < 200) {
+        resolution = 200; // 自动修正为最小值
+        maxResolutionInput.value = resolution;
+      }
+      
+      // 保存到存储
+      try {
+        await chrome.storage.sync.set({ maxResolution: resolution });
+        
+        // 更新按钮文本
+        resolutionEditBtn.textContent = '进行编辑';
+        isEditingResolution = false;
+        
+        // 禁用输入框
+        maxResolutionInput.setAttribute('readonly', true);
+        
+        console.log('最大分辨率已保存:', resolution);
+      } catch (error) {
+        console.error('保存分辨率设置失败:', error);
+        alert('保存失败，请重试');
+      }
+    } else {
+      // 进入编辑模式
+      resolutionEditBtn.textContent = '保存设置';
+      isEditingResolution = true;
+      
+      // 启用输入框
+      maxResolutionInput.removeAttribute('readonly');
+      maxResolutionInput.focus();
+      maxResolutionInput.select();
+    }
+  });
+
+  // 确保输入框只接受整数
+  maxResolutionInput.addEventListener('input', function() {
+    let value = this.value;
+    // 移除非数字字符
+    value = value.replace(/[^\d]/g, '');
+    this.value = value;
+  });
+
+  // 在输入框失去焦点时验证最小值
+  maxResolutionInput.addEventListener('blur', function() {
+    if (!isEditingResolution) return;
+    
+    let value = parseInt(this.value);
+    if (isNaN(value) || value < 200) {
+      this.value = 200;
     }
   });
 

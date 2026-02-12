@@ -141,16 +141,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 显示捕获的画面
-  function displayCapture(data) {
-    if (!videoElement) return;
-    if (data.imageDataUrl) {
-      // 直接捕获的视频帧显示为图片
-      videoElement.poster = data.imageDataUrl;
-      videoElement.srcObject = null;
-      updateStatus(`✅ 捕获成功\n尺寸: ${data.width || 'unknown'}x${data.height || 'unknown'}`, 'success');
-    }
+// 显示捕获的画面
+function displayCapture(data) {
+  // 获取图片元素（注意：id保持capturedVideo不变，但实际上是img元素）
+  const imgElement = document.getElementById('capturedVideo');
+  if (!imgElement) return;
+  
+  if (data.imageDataUrl) {
+    // 直接设置图片的src属性
+    imgElement.src = data.imageDataUrl;
+    imgElement.alt = `捕获的画面 ${data.width}x${data.height}`;
+    updateStatus(`✅ 捕获成功\n尺寸: ${data.width || 'unknown'}x${data.height || 'unknown'}`, 'success');
+  } else {
+    // 如果没有图片数据，清空src
+    imgElement.src = '';
+    imgElement.alt = '暂无捕获画面';
   }
+}
 
   // 从background获取当前状态
   async function getCurrentStatus() {

@@ -4,6 +4,7 @@
 let lastFrameData = null;
 let videoSpeedHistory = []; // 存储变化幅度历史，用于灵敏度处理
 let currentSettings = null; // 当前设置
+let cachedSettings = null;
 
 // 加载当前设置
 async function loadSettings() {
@@ -262,7 +263,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
     return true;
   }
-  
+
   if (request.action === "smartCapture") {
     const videos = document.querySelectorAll('video');
     
@@ -271,71 +272,88 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       return true;
     }
     
-    // console.log(`🔍 尝试智能捕获，共找到 ${videos.length} 个视频元素`);
-    
-    // 尝试捕获每个视频
-    for (let i = 0; i < videos.length; i++) {
-      const video = videos[i];
-      
-      // console.log(`🔍 检查视频 ${i}:`, { readyState: video.readyState, videoWidth: video.videoWidth, videoHeight: video.videoHeight, src: video.src, currentSrc: video.currentSrc});
-      
-      // 检查视频是否适合捕获
-      if (video.readyState < 2) {
-        // console.log(`⏭️ 视频 ${i} 尚未准备好 (readyState: ${video.readyState})`);
-        continue;
-      }
-      
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        // console.log(`⏭️ 视频 ${i} 尺寸无效 (${video.videoWidth}x${video.videoHeight})`);
-        continue;
-      }
-      
+    // 方法1：使用异步函数处理（推荐）
+    (async () => {
       try {
-        // 1：计算缩放后的尺寸
-        let targetWidth = video.videoWidth;
-        let targetHeight = video.videoHeight;
+        // 获取最大分辨率配置（默认480）
+        let maxResolution = 480; // 默认值
         
-        // 循环除以2直到两个边长都≤480
-        while (targetWidth > 480 || targetHeight > 480) {
-          targetWidth = Math.floor(targetWidth / 2);
-          targetHeight = Math.floor(targetHeight / 2);
+        // 尝试从storage获取配置
+        const config = await chrome.storage.sync.get(['maxResolution']);
+        console.log('获取的存储配置:', config); // 调试用
+        
+        if (config.maxResolution && config.maxResolution >= 200) {
+          maxResolution = config.maxResolution;
         }
         
-
-        const canvas = document.createElement('canvas');
-        canvas.width = targetWidth;
-        canvas.height = targetHeight;
-        const ctx = canvas.getContext('2d');
+        console.log(`🔧 使用最大分辨率配置: ${maxResolution}px`);
         
-        // 2：绘制时使用目标尺寸
-        ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+        // 尝试捕获每个视频
+        for (let i = 0; i < videos.length; i++) {
+          const video = videos[i];
+          
+          // 检查视频是否适合捕获
+          if (video.readyState < 2) {
+            continue;
+          }
+          
+          if (video.videoWidth === 0 || video.videoHeight === 0) {
+            continue;
+          }
+          
+          try {
+            // 1：计算缩放后的尺寸
+            let targetWidth = video.videoWidth;
+            let targetHeight = video.videoHeight;
+            
+            // 循环除以2直到两个边长都≤maxResolution
+            while (targetWidth > maxResolution || targetHeight > maxResolution) {
+              targetWidth = Math.floor(targetWidth / 2);
+              targetHeight = Math.floor(targetHeight / 2);
+            }
+            
+            // 确保最小尺寸不低于80×80
+            targetWidth = Math.max(targetWidth, 80);
+            targetHeight = Math.max(targetHeight, 80);
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            const ctx = canvas.getContext('2d');
+            
+            // 2：绘制时使用目标尺寸
+            ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+            
+            // 3：使用JPEG格式代替PNG
+            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            
+            sendResponse({
+              success: true,
+              method: "direct",
+              videoIndex: i,
+              imageDataUrl: imageDataUrl,
+              width: canvas.width,
+              height: canvas.height,
+              originalWidth: video.videoWidth,
+              originalHeight: video.videoHeight,
+              maxResolution: maxResolution // 返回使用的分辨率配置
+            });
+            return; // 成功捕获，提前返回
+          } catch (e) {
+            // 继续尝试下一个视频
+            continue;
+          }
+        }
         
-        // 3：使用JPEG格式代替PNG
-        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        
-        // console.log(`✅ 成功捕获视频 ${i} 的画面`);
-        
-        sendResponse({
-          success: true,
-          method: "direct",
-          videoIndex: i,
-          imageDataUrl: imageDataUrl,
-          width: canvas.width,
-          height: canvas.height,
-          originalWidth: video.videoWidth,
-          originalHeight: video.videoHeight
-        });
-        return true;
-      } catch (e) {
-        // console.log(`⚠️ 尝试捕获视频 ${i} 失败:`, e.message);
-        // 继续尝试下一个视频
-        continue;
+        // 所有视频都尝试失败
+        sendResponse({success: false, reason: "all_capture_failed"});
+      } catch (error) {
+        console.error('智能捕获处理失败:', error);
+        sendResponse({success: false, reason: "internal_error", error: error.message});
       }
-    }
+    })();
     
-    // 所有视频都尝试失败
-    sendResponse({success: false, reason: "all_capture_failed"});
-    return true;
+    return true; // 保持消息通道开放，等待异步响应
   }
   
   // 新增：等待视频准备好的功能

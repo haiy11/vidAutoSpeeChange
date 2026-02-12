@@ -274,12 +274,60 @@
       background-color: #6c757d;
       color: white;
     }
+
+    .resolution-control {
+      margin-top: 15px;
+    }
+
+    .resolution-display {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding: 10px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      background-color: #fafafa;
+    }
+
+    .resolution-display span {
+      margin: 0 5px;
+      font-weight: bold;
+    }
+
+    #maxResolutionInput {
+      width: 80px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      text-align: center;
+      font-weight: bold;
+      color: #333;
+    }
+
+    #maxResolutionInput:read-only {
+      background-color: #f0f0f0;
+      color: #666;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>智能变速设置</h1>
 
+    <div class="section">
+      <div class="section-title">视频捕获设置</div>
+      
+      <div class="scheme-edit-section">
+        <div class="resolution-control">
+          <div class="resolution-display">
+            <span>捕获画面最大分辨率：</span>
+            <input type="number" id="maxResolutionInput" min="200" max="1920" value="480" readonly>
+            <span>px（长或宽的最大值）</span>
+          </div>
+          <button class="edit-btn" id="resolutionEditBtn">进行编辑</button>
+        </div>
+      </div>
+    </div>
     <div class="section">
       <div class="section-title">变速方案</div>
       
@@ -343,43 +391,6 @@
         <span class="sensitivity-value" id="sensitivityValue">3</span>
         <button class="sensitivity-btn" id="sensitivityPlus">+</button>
         <span class="sensitivity-info">数字越小越灵敏，数字越大越稳定</span>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">快捷键设置</div>
-      
-      <div class="shortcut-section">
-        <div class="shortcut-item">
-          <span class="shortcut-label">插件开启快捷键：</span>
-          <input type="text" class="shortcut-input" id="toggleShortcut" value="Alt+K" readonly>
-        </div>
-        <div class="shortcut-item">
-          <span class="shortcut-label">切换方案一快捷键：</span>
-          <input type="text" class="shortcut-input" id="scheme1Shortcut" value="Alt+1" readonly>
-        </div>
-        <div class="shortcut-item">
-          <span class="shortcut-label">切换方案二快捷键：</span>
-          <input type="text" class="shortcut-input" id="scheme2Shortcut" value="Alt+2" readonly>
-        </div>
-        <div class="shortcut-item">
-          <span class="shortcut-label">切换方案三快捷键：</span>
-          <input type="text" class="shortcut-input" id="scheme3Shortcut" value="Alt+3" readonly>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 快捷键设置模态框 -->
-  <div id="shortcutModal" class="modal">
-    <div class="modal-content">
-      <h3 class="modal-title">设置快捷键</h3>
-      <p>当前快捷键：</p>
-      <div class="current-shortcut" id="currentShortcutDisplay">Alt+K</div>
-      <p>请按下新的快捷键组合</p>
-      <div class="modal-buttons">
-        <button class="modal-btn confirm-btn" id="confirmShortcut">确认</button>
-        <button class="modal-btn cancel-btn" id="cancelShortcut">取消</button>
       </div>
     </div>
   </div>

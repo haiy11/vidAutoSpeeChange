@@ -45,19 +45,25 @@
       display: block;
     }
 
-    #videoContainer {
-      width: 100%;
-      height: 200px; /* 固定视频容器高度 */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+  /* 将视频容器改名为更通用的容器 */
+  #videoContainer {
+    width: 100%;
+    height: 200px; /* 固定容器高度 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* 防止图片溢出 */
+    background-color: #f9f9f9; /* 添加背景色以便区分 */
+    border: 1px solid #ddd; /* 添加边框 */
+    border-radius: 4px;
+  }
 
-    #capturedVideo {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain; /* 保持视频比例 */
-    }
+  /* 将视频样式改为图片样式 */
+  #capturedVideo {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* 保持图片比例 */
+  }
 
     button {
       width: 100%;
@@ -201,7 +207,7 @@
   
   <div class="tab-content" id="videoContent">
     <div id="videoContainer">
-      <video id="capturedVideo" autoplay muted controls></video>
+      <img id="capturedVideo" autoplay muted controls></img>
     </div>
   </div>
   
