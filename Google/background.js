@@ -1,4 +1,4 @@
-// c
+// background.js
 // 存储视频检测状态
 let hasVideo = false;
 let captureStatus = false; // 捕获状态，需要持久化
@@ -10,6 +10,70 @@ const CHART_MAX_VALUE = 50; // 图表最大值
 
 // 存储当前活动的流ID，以便正确管理
 let activeStreamId = null;
+
+let nativePort = null;          // 与 C++ 的连接
+let pendingResolve = null;      // 当前等待的 resolve
+let pendingReject = null;       // 当前等待的 reject
+let pendingTimeout = null;      // 超时定时器
+
+
+/**
+ * 获取或创建 Native 连接
+ */
+function getNativePort() {
+  if (!nativePort) {
+    nativePort = chrome.runtime.connectNative('com.dynamic.speed');
+    nativePort.onMessage.addListener((response) => {
+      if (pendingResolve) {
+        if (pendingTimeout) clearTimeout(pendingTimeout);
+        pendingResolve(response);
+        pendingResolve = null;
+        pendingReject = null;
+        pendingTimeout = null;
+      } else {
+        console.warn('收到意外的响应，没有等待中的请求:', response);
+      }
+    });
+    nativePort.onDisconnect.addListener(() => {
+      console.log('Native 连接断开');
+      if (pendingReject) {
+        pendingReject(new Error('Native 连接断开'));
+        if (pendingTimeout) clearTimeout(pendingTimeout);
+        pendingResolve = null;
+        pendingReject = null;
+        pendingTimeout = null;
+      }
+      nativePort = null;
+    });
+  }
+  return nativePort;
+}
+
+/**
+ * 发送消息到 C++，返回 Promise
+ * @param {Object} message 要发送的消息（应包含 frame 字段）
+ * @returns {Promise<Object>} C++ 返回的 JSON
+ */
+function sendNativeMessage(message) {
+  return new Promise((resolve, reject) => {
+    if (pendingResolve) {
+      reject(new Error('已有正在进行的 Native 请求，请等待完成'));
+      return;
+    }
+    const port = getNativePort();
+    pendingResolve = resolve;
+    pendingReject = reject;
+    pendingTimeout = setTimeout(() => {
+      if (pendingReject) {
+        pendingReject(new Error('Native 请求超时'));
+        pendingResolve = null;
+        pendingReject = null;
+        pendingTimeout = null;
+      }
+    }, 5000);
+    port.postMessage(message);
+  });
+}
 
 // 初始化捕获状态
 async function initializeCaptureStatus() {
@@ -53,30 +117,23 @@ async function checkForVideos(tabId) {
   }
 }
 
-// 计算帧变化幅度的函数 - 高级版，使用边缘检测和结构变化检测
-async function calculateFrameChange(lastFrame, currentFrame) {
-  if (!lastFrame || !currentFrame) return 0;
-
-  return new Promise((resolve) => {
-    // 创建临时canvas用于图像处理 - 在content.js中处理
-    chrome.tabs.query({active: true, currentWindow: true}, async (tabs) => {
-      if (tabs.length > 0) {
-        try {
-          const response = await chrome.tabs.sendMessage(tabs[0].id, {
-            action: "calculateFrameChange",
-            currentFrame: currentFrame,
-            lastFrame: lastFrame
-          });
-          resolve(response.changeAmount);
-        } catch (error) {
-          console.error('计算帧变化时出错:', error);
-          resolve(0);
-        }
-      } else {
-        resolve(0);
-      }
-    });
-  });
+/**
+ * 发送当前帧给 C++ 进行对比（C++ 缓存上一帧）
+ * @param {string} currentFrameBase64 当前帧的 base64 数据
+ * @returns {Promise<number>} 变化幅度
+ */
+async function calculateFrameChange(currentFrameBase64) {
+  const message = {
+    frame: currentFrameBase64   // 只发送当前帧
+  };
+  try {
+    const response = await sendNativeMessage(message);
+    //  C++ 返回 { change: 0.5 }
+    return response.change || 0;
+  } catch (error) {
+    console.error('Native 调用失败:', error);
+    return 0;
+  }
 }
 
 // 添加新的变化值到历史记录
@@ -125,13 +182,23 @@ async function captureCurrentPageFrame() {
       // console.log(`📊 捕获信息 - 方法: direct, 尺寸: ${smartCaptureResponse.width}x${smartCaptureResponse.height}`);
       
       // 计算帧变化幅度
-      const changeAmount = await calculateFrameChange(lastFrame, smartCaptureResponse.imageDataUrl);
+      const changeAmount = await calculateFrameChange(smartCaptureResponse.imageDataUrl);
       lastFrame = smartCaptureResponse.imageDataUrl;
       // console.log(`📊 画面变化幅度: ${changeAmount.toFixed(2)}`);
       
       // 添加到图表
       addChangeValue(changeAmount);
       
+      // 将变化值发送给 content 脚本，让它调整速度
+      if (tab && tab.id) {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'updateSpeed',
+          change: changeAmount
+        }).catch(() => {
+          // 忽略错误，content 可能未准备好
+        });
+      }
+
       // 广播捕获画面给popup
       chrome.runtime.sendMessage({
         action: 'updateCaptureImage',
@@ -193,7 +260,7 @@ async function captureTabFrame(tab) {
       
       if (response.success) {
         // 计算帧变化幅度
-        const changeAmount = await calculateFrameChange(lastFrame, response.imageDataUrl);
+        const changeAmount = await calculateFrameChange(response.imageDataUrl);
         lastFrame = response.imageDataUrl;
         // console.log(`📊 画面变化幅度: ${changeAmount.toFixed(2)}`);
         
