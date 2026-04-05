@@ -23,26 +23,13 @@ document.addEventListener('DOMContentLoaded', function() {
   // 默认方案设置
   const defaultSchemes = {
     1: [
-      { min: 0, max: 5, speed: 2.0 },
-      { min: 5, max: 8, speed: 1.9 },
-      { min: 8, max: 11, speed: 1.8 },
-      { min: 11, max: 13, speed: 1.7 },
-      { min: 13, max: 14, speed: 1.6 },
-      { min: 14, max: 15, speed: 1.5 },
-      { min: 15, max: 16, speed: 1.4 },
-      { min: 16, max: 17, speed: 1.3 },
-      { min: 17, max: 19, speed: 1.2 },
-      { min: 19, max: 22, speed: 1.1 },
-      { min: 22, max: 25, speed: 1.0 },
-      { min: 25, max: 30, speed: 0.9 },
-      { min: 30, max: 35, speed: 0.8 },
-      { min: 35, max: 40, speed: 0.7 },
-      { min: 40, max: 45, speed: 0.6 },
-      { min: 45, max: 50, speed: 0.5 },
-      { min: 50, max: 60, speed: 0.4 },
-      { min: 60, max: 70, speed: 0.3 },
-      { min: 70, max: 80, speed: 0.2 },
-      { min: 80, max: 100, speed: 0.1 }
+      { min: 0, max: 10, speed: 2.0 },
+      { min: 10, max: 15, speed: 1.8 },
+      { min: 15, max: 30, speed: 1.5 },
+      { min: 30, max: 60, speed: 1.0 },
+      { min: 60, max: 70, speed: 0.8 },
+      { min: 70, max: 80, speed: 0.7 },
+      { min: 80, max: 100, speed: 0.5 }
     ],
     2: [
       { min: 0, max: 15, speed: 2.0 },
@@ -57,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   // 默认灵敏度
-  const defaultSensitivity = 3;
+  const defaultSensitivity = 6;
 
   // 默认最大分辨率
   const defaultMaxResolution = 480;
@@ -348,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // 灵敏度控制
   sensitivityPlus.addEventListener('click', async function() {
     let value = parseInt(sensitivityValue.textContent);
-    if (value < 5) {
+    if (value < 20) {
       value++;
       sensitivityValue.textContent = value;
       try {

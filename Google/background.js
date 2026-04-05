@@ -6,7 +6,8 @@ let captureInterval = null;
 let lastFrame = null;
 let changeHistory = [];
 const MAX_HISTORY_POINTS = 40; // 最多保存40个历史点
-const CHART_MAX_VALUE = 50; // 图表最大值
+const CHART_MAX_VALUE = 100; // 图表最大值
+const CAPTURE_INTERVAL = 50; // 捕获间隔（毫秒）
 
 // 存储当前活动的流ID，以便正确管理
 let activeStreamId = null;
@@ -293,8 +294,8 @@ function startCapture() {
     clearInterval(captureInterval);
   }
   
-  // 每0.2秒捕获一次
-  captureInterval = setInterval(captureCurrentPageFrame, 50);
+  // 捕获帧
+  captureInterval = setInterval(captureCurrentPageFrame, CAPTURE_INTERVAL);
   // console.log("✅ 开始定时捕获，间隔: 200ms");
 }
 

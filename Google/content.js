@@ -105,44 +105,34 @@ function processChangeWithSensitivity(change) {
   // 如果历史记录少于灵敏度设置，使用当前有的数量
   const sensitivity = Math.min(currentSettings.sensitivity, videoSpeedHistory.length);
   
-  if (sensitivity === 1) {
-    // 灵敏度为1：直接返回最新值
-    return videoSpeedHistory[videoSpeedHistory.length - 1];
-  } else if (sensitivity === 2) {
-    // 灵敏度为2：返回最新两个值的平均值
-    const start = Math.max(0, videoSpeedHistory.length - 2);
+  if (sensitivity > 0) {
+    // 计算需要去掉的极值数量
+    const out = Math.floor(sensitivity / 3);
+    
+    // 确定需要处理的历史数据长度
+    const historyLength = Math.min(videoSpeedHistory.length, sensitivity);
+    
+    // 获取需要处理的历史数据
+    const start = Math.max(0, videoSpeedHistory.length - historyLength);
     const values = videoSpeedHistory.slice(start);
-    return values.reduce((a, b) => a + b, 0) / values.length;
-  } else if (sensitivity === 3) {
-    // 灵敏度为3：去掉一个最大值和一个最小值，返回中间值
-    const start = Math.max(0, videoSpeedHistory.length - 3);
-    const values = [...videoSpeedHistory.slice(start)].sort((a, b) => a - b);
-    if (values.length >= 3) {
-      return values[1]; // 返回中间值
-    } else {
+    
+    // 如果数据量不足以去掉极值，直接返回平均值
+    if (values.length <= out * 2) {
       return values.reduce((a, b) => a + b, 0) / values.length;
     }
-  } else if (sensitivity === 4) {
-    // 灵敏度为4：去掉一个最大值和一个最小值，返回剩余两个的平均值
-    const start = Math.max(0, videoSpeedHistory.length - 4);
-    const values = [...videoSpeedHistory.slice(start)].sort((a, b) => a - b);
-    if (values.length >= 4) {
-      // 去掉第一个（最小）和最后一个（最大），取中间两个的平均值
-      return (values[1] + values[2]) / 2;
-    } else {
-      return values.reduce((a, b) => a + b, 0) / values.length;
-    }
-  } else if (sensitivity === 5) {
-    // 灵敏度为5：去掉一个最大值和一个最小值，返回剩余三个的平均值
-    const start = Math.max(0, videoSpeedHistory.length - 5);
-    const values = [...videoSpeedHistory.slice(start)].sort((a, b) => a - b);
-    if (values.length >= 5) {
-      // 去掉第一个（最小）和最后一个（最大），取中间三个的平均值
-      return (values[1] + values[2] + values[3]) / 3;
-    } else {
-      return values.reduce((a, b) => a + b, 0) / values.length;
-    }
+    
+    // 排序并去掉极值
+    const sortedValues = [...values].sort((a, b) => a - b);
+    const trimmedValues = sortedValues.slice(out, sortedValues.length - out);
+    
+    // 计算剩余值的平均值
+    return trimmedValues.reduce((a, b) => a + b, 0) / trimmedValues.length;
+  } else {
+    // 如果没有敏感度，直接返回平均值
+    console.log("⚠️ 灵敏度设置无效，无法处理变化幅度。请检查设置。");
+    return 0;
   }
+
 }
 
 // 根据变化幅度和当前方案调整视频播放速度

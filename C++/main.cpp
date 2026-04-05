@@ -153,15 +153,21 @@ float compute_change_histogram_block(const std::vector<float>& edge1,
     int pixels_per_block = (width * height) / (block_rows * block_cols);
     float max_possible_per_block = 1.5f * pixels_per_block;   // 调低理论最大值，放大变化值
     float max_total_diff = block_rows * block_cols * max_possible_per_block;
-    float change = (total_diff / max_total_diff) * 100.0f;
+    float change = total_diff / max_total_diff;
 
-    // 额外乘一个灵敏度系数（如 1.5），可根据需要调整
-    const float sensitivity = 1.5f;
-    change *= sensitivity;
+    // 灵敏度调整
+    if (change > 0.0f) {
+        //  调整参数
+        constexpr float sensitivity = 10.0f;
 
-    if (change > 100.0f) change = 100.0f;
+        change = (1.0f - 1.0f / (sensitivity * (change + 1.0f / sensitivity))) * ((sensitivity + 1.0f) / sensitivity);
+
+        if (change > 1.0f) change = 1.0f;
+    }
+
+    if (change > 1.0f) change = 1.0f;
     if (change < 0.0f) change = 0.0f;
-    return change;
+    return change * 100.0f;
 }
 
 // ---------- 消息收发函数 ----------

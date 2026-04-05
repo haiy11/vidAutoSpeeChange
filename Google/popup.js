@@ -6,7 +6,7 @@ let isCapturing = false;
 // 添加图表相关变量
 let changeHistory = [];
 const MAX_HISTORY_POINTS = 40; // 最多保存40个历史点
-const CHART_MAX_VALUE = 50; // 图表最大值
+const CHART_MAX_VALUE = 100; // 图表最大值
 
 document.addEventListener('DOMContentLoaded', () => {
   // 获取DOM元素
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.strokeStyle = '#f0f0f0';
     ctx.lineWidth = 1;
     
-    // 水平网格线 (5条 - 0, 10, 20, 30, 40, 50)
+    // 水平网格线 (5条 - 0, 20, 40, 60, 80, 100)
     for (let i = 0; i <= 5; i++) {
       const y = height - (i * maxValue / 5) * (height / maxValue);
       ctx.beginPath();
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     for (let i = 0; i < changeHistory.length; i++) {
       const x = i * pointSpacing;
-      // 将值映射到canvas高度 (从上到下)，固定范围0-50
+      // 将值映射到canvas高度 (从上到下)，固定范围0-100
       const y = height - (changeHistory[i].value / maxValue) * height;
       
       if (i === 0) {
