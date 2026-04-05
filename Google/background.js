@@ -294,7 +294,7 @@ function startCapture() {
   }
   
   // 每0.2秒捕获一次
-  captureInterval = setInterval(captureCurrentPageFrame, 200);
+  captureInterval = setInterval(captureCurrentPageFrame, 50);
   // console.log("✅ 开始定时捕获，间隔: 200ms");
 }
 

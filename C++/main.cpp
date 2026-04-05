@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <io.h>
 #include <cmath>      // for sqrt
-#include <algorithm>  // for min/max (可选)
+#include <algorithm>  // for min/max
 
 // 第三方库
 #define STB_IMAGE_IMPLEMENTATION
@@ -52,9 +52,7 @@ std::vector<unsigned char> base64_decode(const std::string& encoded_string) {
     return ret;
 }
 
-// ---------- 图像处理函数 ----------
-
-// 计算灰度图像的 Sobel 边缘强度图
+// ---------- 边缘检测（Sobel）----------
 std::vector<float> detect_edges(const unsigned char* gray, int width, int height) {
     std::vector<float> edge_map(width * height, 0.0f);
     for (int y = 1; y < height - 1; ++y) {
@@ -74,33 +72,95 @@ std::vector<float> detect_edges(const unsigned char* gray, int width, int height
     return edge_map;
 }
 
-// 计算两个边缘图的差异（变化百分比，0-100）
-float calculate_edge_change(const std::vector<float>& edge1, const std::vector<float>& edge2,
-                            int width, int height) {
-    float total_diff = 0.0f;
-    int total_pixels = width * height;
-    for (int i = 0; i < total_pixels; ++i) {
-        float diff = std::abs(edge1[i] - edge2[i]);
-        total_diff += diff;
+// ---------- 直方图计算 ----------
+// 将 edge_map（浮点）量化为 0~255 整数，然后分 bin
+std::vector<int> compute_histogram(const std::vector<float>& edge_map,
+                                   int width, int height,
+                                   int block_row, int block_col,
+                                   int block_rows, int block_cols,
+                                   int bins = 16) {
+    // 计算块边界
+    int block_h = height / block_rows;
+    int block_w = width / block_cols;
+    int y_start = block_row * block_h;
+    int y_end = (block_row == block_rows - 1) ? height : (block_row + 1) * block_h;
+    int x_start = block_col * block_w;
+    int x_end = (block_col == block_cols - 1) ? width : (block_col + 1) * block_w;
+
+    std::vector<int> hist(bins, 0);
+    float bin_step = 256.0f / bins;  // 边缘强度范围 0~255
+    for (int y = y_start; y < y_end; ++y) {
+        for (int x = x_start; x < x_end; ++x) {
+            int idx = y * width + x;
+            int val = static_cast<int>(edge_map[idx]);  // 取整
+            int bin = static_cast<int>(val / bin_step);
+            if (bin >= bins) bin = bins - 1;
+            hist[bin]++;
+        }
     }
-    float avg_diff = total_diff / total_pixels;
-    // 假设边缘强度范围 0-255（实际上可能更大，这里简单映射）
-    float change = (avg_diff / 255.0f) * 100.0f;
-    if (change > 100.0f) change = 100.0f;
-    return change;
+    return hist;
 }
 
-// 计算两个灰度图像的亮度变化百分比
-float calculate_brightness_change(const unsigned char* gray1, const unsigned char* gray2,
-                                  int width, int height) {
-    int total_pixels = width * height;
-    float total_diff = 0.0f;
-    for (int i = 0; i < total_pixels; ++i) {
-        total_diff += std::abs(static_cast<int>(gray1[i]) - static_cast<int>(gray2[i]));
+// 计算两个直方图的 L1 距离（绝对差之和）
+float hist_l1_distance(const std::vector<int>& h1, const std::vector<int>& h2) {
+    float dist = 0.0f;
+    for (size_t i = 0; i < h1.size(); ++i) {
+        dist += std::abs(h1[i] - h2[i]);
     }
-    float avg_diff = total_diff / total_pixels;
-    float change = (avg_diff / 255.0f) * 100.0f;
+    return dist;
+}
+
+// ---------- 边缘直方图+块匹配 变化检测 ----------
+float compute_change_histogram_block(const std::vector<float>& edge1,
+                                     const std::vector<float>& edge2,
+                                     int width, int height,
+                                     int block_rows = 16, int block_cols = 16,  // 改为 16x16
+                                     int search_range = 1) {
+    int bins = 8;  // 减少 bin 数，提高敏感度
+
+    // 预分配直方图数组（略，同原代码）
+    std::vector<std::vector<std::vector<int>>> hist1(block_rows,
+        std::vector<std::vector<int>>(block_cols, std::vector<int>(bins, 0)));
+    std::vector<std::vector<std::vector<int>>> hist2(block_rows,
+        std::vector<std::vector<int>>(block_cols, std::vector<int>(bins, 0)));
+
+    for (int r = 0; r < block_rows; ++r) {
+        for (int c = 0; c < block_cols; ++c) {
+            hist1[r][c] = compute_histogram(edge1, width, height, r, c, block_rows, block_cols, bins);
+            hist2[r][c] = compute_histogram(edge2, width, height, r, c, block_rows, block_cols, bins);
+        }
+    }
+
+    float total_diff = 0.0f;
+    for (int r = 0; r < block_rows; ++r) {
+        for (int c = 0; c < block_cols; ++c) {
+            float best_dist = std::numeric_limits<float>::max();
+            for (int dr = -search_range; dr <= search_range; ++dr) {
+                for (int dc = -search_range; dc <= search_range; ++dc) {
+                    int nr = r + dr;
+                    int nc = c + dc;
+                    if (nr >= 0 && nr < block_rows && nc >= 0 && nc < block_cols) {
+                        float dist = hist_l1_distance(hist1[r][c], hist2[nr][nc]);
+                        if (dist < best_dist) best_dist = dist;
+                    }
+                }
+            }
+            total_diff += best_dist;
+        }
+    }
+
+    // 归一化：每块理论最大 L1 距离设为 1.5 * 每块像素数（原为 2倍）
+    int pixels_per_block = (width * height) / (block_rows * block_cols);
+    float max_possible_per_block = 1.5f * pixels_per_block;   // 调低理论最大值，放大变化值
+    float max_total_diff = block_rows * block_cols * max_possible_per_block;
+    float change = (total_diff / max_total_diff) * 100.0f;
+
+    // 额外乘一个灵敏度系数（如 1.5），可根据需要调整
+    const float sensitivity = 1.5f;
+    change *= sensitivity;
+
     if (change > 100.0f) change = 100.0f;
+    if (change < 0.0f) change = 0.0f;
     return change;
 }
 
@@ -180,26 +240,22 @@ int main() {
 
         float change = 0.0f;
         if (prev_frame && prev_width == width && prev_height == height) {
-            // 有上一帧且尺寸相同，进行对比
+            // 计算边缘图
             auto edge_curr = detect_edges(img, width, height);
             auto edge_prev = detect_edges(prev_frame, width, height);
-            float edge_change = calculate_edge_change(edge_curr, edge_prev, width, height);
-            float brightness_change = calculate_brightness_change(img, prev_frame, width, height);
-            // 结合边缘和亮度，权重与JS一致
-            change = edge_change * 0.7f + brightness_change * 0.3f;
-            // 确保在 0-100 范围内
-            if (change < 0) change = 0;
-            if (change > 100) change = 100;
+
+            // 使用边缘直方图+块匹配
+            change = compute_change_histogram_block(edge_curr, edge_prev, width, height, 8, 8, 1);
         } else {
-            // 第一次或尺寸变化，返回0（无变化）
+            // 首帧或尺寸变化
             change = 0.0f;
         }
 
-        // 释放上一帧并更新为当前帧
+        // 更新上一帧
         if (prev_frame) {
             stbi_image_free(prev_frame);
         }
-        prev_frame = img;        // 现在由我们管理内存
+        prev_frame = img;
         prev_width = width;
         prev_height = height;
 
