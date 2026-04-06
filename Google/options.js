@@ -23,12 +23,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // 默认方案设置
   const defaultSchemes = {
     1: [
-      { min: 0, max: 10, speed: 2.0 },
-      { min: 10, max: 15, speed: 1.8 },
-      { min: 15, max: 30, speed: 1.5 },
-      { min: 30, max: 60, speed: 1.0 },
+      { min: 0, max: 10, speed: 3.0 },
+      { min: 10, max: 20, speed: 2.0 },
+      { min: 20, max: 40, speed: 1.5 },
+      { min: 40, max: 80, speed: 1.0 },
       { min: 60, max: 70, speed: 0.8 },
-      { min: 70, max: 80, speed: 0.7 },
       { min: 80, max: 100, speed: 0.5 }
     ],
     2: [
