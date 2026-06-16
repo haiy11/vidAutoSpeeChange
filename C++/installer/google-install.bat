@@ -25,7 +25,7 @@ echo   ^"name^": ^"com.dynamic.speed^",
 echo   ^"description^": ^"dynamic speed-variable video comparison core^",
 echo   ^"path^": ^"%exe_path_escaped%^",
 echo   ^"type^": ^"stdio^",
-echo   ^"allowed_origins^": [^"chrome-extension://hdemokncfcljaocjbhbambhfeplbicdj/^"]
+echo   ^"allowed_origins^": [^"chrome-extension://kmheiofaggdafdoliglicehdmebloipp/^"]
 echo }
 ) > "%json_file%"
 

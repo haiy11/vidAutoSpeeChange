@@ -106,12 +106,18 @@ document.addEventListener('DOMContentLoaded', function() {
     rowDiv.dataset.index = index;
     
     rowDiv.innerHTML = `
-      <input type="number" class="min-input" min="0" max="100" value="${rowData.min}" readonly>
-      <span>~</span>
-      <input type="number" class="max-input" min="0" max="100" value="${rowData.max}" readonly>
-      <span class="speed-label"></span>
-      <input type="number" class="speed-input" min="0.1" max="4.0" step="0.1" value="${rowData.speed}" readonly>
-      <button class="remove-row-btn" style="display:none;"></button>
+      <div class="scheme-col-range">
+        <input type="number" class="min-input" min="0" max="100" value="${rowData.min}" readonly>
+        <span>~</span>
+        <input type="number" class="max-input" min="0" max="100" value="${rowData.max}" readonly>
+      </div>
+      <div class="scheme-col-label">
+        <span class="speed-label"></span>
+      </div>
+      <div class="scheme-col-speed">
+        <input type="number" class="speed-input" min="0.1" max="4.0" step="0.1" value="${rowData.speed}" readonly>
+        <button class="remove-row-btn" style="display:none;"></button>
+      </div>
     `;
 
     rowDiv.querySelector('.speed-label').textContent = t('speedLabel');

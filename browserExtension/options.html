@@ -62,8 +62,16 @@
       margin-bottom: 15px;
     }
 
+    .scheme-table {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      column-gap: 12px;
+    }
+
     .scheme-header {
-      display: flex;
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
       align-items: center;
       margin-bottom: 10px;
       padding: 5px 10px;
@@ -73,43 +81,74 @@
     }
 
     .scheme-header span {
-      flex: 1;
       text-align: center;
     }
 
-    .scheme-header span:first-child {
-      flex: 1.5;
+    .scheme-header-spacer {
+      visibility: hidden;
+      user-select: none;
     }
 
-    .scheme-header span:last-child {
-      flex: 1.5;
+    .scheme-rows {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+      row-gap: 10px;
     }
 
     .scheme-row {
-      display: flex;
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
       align-items: center;
-      margin-bottom: 10px;
       padding: 10px;
       border: 1px solid #eee;
       border-radius: 4px;
       background-color: #fafafa;
     }
 
+    .scheme-col-range {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .scheme-col-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .scheme-col-speed {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
     .scheme-row input {
       width: 60px;
       padding: 5px;
-      margin: 0 5px;
+      margin: 0;
       border: 1px solid #ccc;
       border-radius: 3px;
       text-align: center;
     }
 
-    .scheme-row input[type="number"] {
+    .scheme-row input.speed-input {
       width: 80px;
     }
 
-    .scheme-row span {
+    .scheme-row .scheme-col-range span {
       margin: 0 5px;
+    }
+
+    .scheme-row .speed-label {
+      margin: 0;
+      white-space: nowrap;
     }
 
     .add-row-btn, .remove-row-btn {
@@ -342,13 +381,15 @@
 
       <div id="scheme1Content" class="scheme-content active">
         <div class="scheme-edit-section">
-          <div class="scheme-header">
-            <span data-i18n="changeRangeHeader"></span>
-            <span></span>
-            <span data-i18n="playbackSpeedHeader"></span>
-          </div>
-          <div id="scheme1Rows">
-            <!-- 动态生成方案1的行 -->
+          <div class="scheme-table">
+            <div class="scheme-header">
+              <span data-i18n="changeRangeHeader"></span>
+              <span class="scheme-header-spacer" aria-hidden="true" data-i18n="speedLabel"></span>
+              <span data-i18n="playbackSpeedHeader"></span>
+            </div>
+            <div id="scheme1Rows" class="scheme-rows">
+              <!-- 动态生成方案1的行 -->
+            </div>
           </div>
           <button class="add-row-btn" id="scheme1AddRowBtn" style="display:none;" data-i18n="btnAddRow"></button>
           <button class="edit-btn" id="scheme1EditBtn" data-i18n="btnEdit"></button>
@@ -357,13 +398,15 @@
 
       <div id="scheme2Content" class="scheme-content">
         <div class="scheme-edit-section">
-          <div class="scheme-header">
-            <span data-i18n="changeRangeHeader"></span>
-            <span></span>
-            <span data-i18n="playbackSpeedHeader"></span>
-          </div>
-          <div id="scheme2Rows">
-            <!-- 动态生成方案2的行 -->
+          <div class="scheme-table">
+            <div class="scheme-header">
+              <span data-i18n="changeRangeHeader"></span>
+              <span class="scheme-header-spacer" aria-hidden="true" data-i18n="speedLabel"></span>
+              <span data-i18n="playbackSpeedHeader"></span>
+            </div>
+            <div id="scheme2Rows" class="scheme-rows">
+              <!-- 动态生成方案2的行 -->
+            </div>
           </div>
           <button class="add-row-btn" id="scheme2AddRowBtn" style="display:none;" data-i18n="btnAddRow"></button>
           <button class="edit-btn" id="scheme2EditBtn" data-i18n="btnEdit"></button>
@@ -372,13 +415,15 @@
 
       <div id="scheme3Content" class="scheme-content">
         <div class="scheme-edit-section">
-          <div class="scheme-header">
-            <span data-i18n="changeRangeHeader"></span>
-            <span></span>
-            <span data-i18n="playbackSpeedHeader"></span>
-          </div>
-          <div id="scheme3Rows">
-            <!-- 动态生成方案3的行 -->
+          <div class="scheme-table">
+            <div class="scheme-header">
+              <span data-i18n="changeRangeHeader"></span>
+              <span class="scheme-header-spacer" aria-hidden="true" data-i18n="speedLabel"></span>
+              <span data-i18n="playbackSpeedHeader"></span>
+            </div>
+            <div id="scheme3Rows" class="scheme-rows">
+              <!-- 动态生成方案3的行 -->
+            </div>
           </div>
           <button class="add-row-btn" id="scheme3AddRowBtn" style="display:none;" data-i18n="btnAddRow"></button>
           <button class="edit-btn" id="scheme3EditBtn" data-i18n="btnEdit"></button>
