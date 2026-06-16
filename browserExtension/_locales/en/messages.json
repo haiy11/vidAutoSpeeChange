@@ -1,0 +1,229 @@
+{
+  "extensionName": {
+    "message": "Smart Speed Adjustment"
+  },
+  "extensionDescription": {
+    "message": "Automatically adjusts video playback speed based on on-screen motion intensity"
+  },
+  "extensionTitle": {
+    "message": "Smart Speed Adjustment — auto-adjust playback speed based on picture change rate"
+  },
+  "popupTitle": {
+    "message": "Video Capture Preview"
+  },
+  "settingsLink": {
+    "message": "Settings"
+  },
+  "tabChart": {
+    "message": "Change Chart"
+  },
+  "tabCapture": {
+    "message": "Captured Frame"
+  },
+  "btnStartCapture": {
+    "message": "Start Capture"
+  },
+  "btnStopCapture": {
+    "message": "Stop Capture"
+  },
+  "captureIntervalLabel": {
+    "message": "Capture interval (ms):"
+  },
+  "statusWaitingInit": {
+    "message": "Waiting for initialization..."
+  },
+  "statusLoading": {
+    "message": "Loading status..."
+  },
+  "currentChange": {
+    "message": "Current change: $VALUE$%",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "12.34"
+      }
+    }
+  },
+  "currentSpeed": {
+    "message": "Current speed: $VALUE$x",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "1.5"
+      }
+    }
+  },
+  "currentChangeEmpty": {
+    "message": "Current change: --%"
+  },
+  "currentSpeedEmpty": {
+    "message": "Current speed: --x"
+  },
+  "captureSuccess": {
+    "message": "Capture successful\nSize: $WIDTH$x$HEIGHT$",
+    "placeholders": {
+      "width": {
+        "content": "$1",
+        "example": "640"
+      },
+      "height": {
+        "content": "$2",
+        "example": "480"
+      }
+    }
+  },
+  "captureAlt": {
+    "message": "Captured frame $WIDTH$x$HEIGHT$",
+    "placeholders": {
+      "width": {
+        "content": "$1",
+        "example": "640"
+      },
+      "height": {
+        "content": "$2",
+        "example": "480"
+      }
+    }
+  },
+  "captureAltEmpty": {
+    "message": "No captured frame yet"
+  },
+  "statusCapturing": {
+    "message": "Capturing in background..."
+  },
+  "statusStopped": {
+    "message": "Capture stopped"
+  },
+  "statusGetFailed": {
+    "message": "Failed to get status"
+  },
+  "statusStarting": {
+    "message": "Starting background capture..."
+  },
+  "statusStartSuccess": {
+    "message": "Background capture started"
+  },
+  "statusStartFailed": {
+    "message": "Failed to start capture"
+  },
+  "statusStartFailedDetail": {
+    "message": "Failed to start capture: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Permission denied"
+      }
+    }
+  },
+  "statusStopping": {
+    "message": "Stopping background capture..."
+  },
+  "statusStopFailed": {
+    "message": "Failed to stop capture"
+  },
+  "statusStopFailedDetail": {
+    "message": "Failed to stop capture: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Unknown error"
+      }
+    }
+  },
+  "optionsTitle": {
+    "message": "Smart Speed Settings"
+  },
+  "sectionCapture": {
+    "message": "Video Capture Settings"
+  },
+  "maxResolutionLabel": {
+    "message": "Max capture resolution:"
+  },
+  "maxResolutionUnit": {
+    "message": "px (max of width or height)"
+  },
+  "sectionSpeedScheme": {
+    "message": "Speed Scheme"
+  },
+  "currentSchemeLabel": {
+    "message": "Current scheme:"
+  },
+  "scheme1": {
+    "message": "Scheme 1"
+  },
+  "scheme2": {
+    "message": "Scheme 2"
+  },
+  "scheme3": {
+    "message": "Scheme 3"
+  },
+  "changeRangeHeader": {
+    "message": "Change Range"
+  },
+  "playbackSpeedHeader": {
+    "message": "Playback Speed"
+  },
+  "btnEdit": {
+    "message": "Edit"
+  },
+  "btnSave": {
+    "message": "Save Settings"
+  },
+  "btnAddRow": {
+    "message": "Add Row"
+  },
+  "btnRemoveRow": {
+    "message": "Remove"
+  },
+  "speedLabel": {
+    "message": "Playback speed:"
+  },
+  "sensitivityLabel": {
+    "message": "Sensitivity:"
+  },
+  "sensitivityHint": {
+    "message": "Lower = more sensitive, higher = more stable"
+  },
+  "validateEmpty": {
+    "message": "Scheme cannot be empty"
+  },
+  "validateFirstMinZero": {
+    "message": "First row min must be 0"
+  },
+  "validateRangeError": {
+    "message": "Row $ROW$: max must be greater than min",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "validateLastMaxHundred": {
+    "message": "Last row max must be 100"
+  },
+  "validateContinuous": {
+    "message": "Row $ROW1$ max ($MAX$) must equal row $ROW2$ min ($MIN$) for continuous ranges",
+    "placeholders": {
+      "row1": {
+        "content": "$1",
+        "example": "1"
+      },
+      "max": {
+        "content": "$2",
+        "example": "20"
+      },
+      "row2": {
+        "content": "$3",
+        "example": "2"
+      },
+      "min": {
+        "content": "$4",
+        "example": "20"
+      }
+    }
+  },
+  "saveFailed": {
+    "message": "Save failed, please try again"
+  }
+}

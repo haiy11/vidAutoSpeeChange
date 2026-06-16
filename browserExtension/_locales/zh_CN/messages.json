@@ -1,0 +1,229 @@
+{
+  "extensionName": {
+    "message": "智能变速"
+  },
+  "extensionDescription": {
+    "message": "根据画面变化速度自动调节播放速度"
+  },
+  "extensionTitle": {
+    "message": "【智能变速】开启根据画面变化速度自动调节播放速度"
+  },
+  "popupTitle": {
+    "message": "视频捕获预览"
+  },
+  "settingsLink": {
+    "message": "设置"
+  },
+  "tabChart": {
+    "message": "变化图表"
+  },
+  "tabCapture": {
+    "message": "捕获画面"
+  },
+  "btnStartCapture": {
+    "message": "开始捕获"
+  },
+  "btnStopCapture": {
+    "message": "停止捕获"
+  },
+  "captureIntervalLabel": {
+    "message": "捕获间隔(毫秒):"
+  },
+  "statusWaitingInit": {
+    "message": "等待初始化..."
+  },
+  "statusLoading": {
+    "message": "正在加载状态..."
+  },
+  "currentChange": {
+    "message": "当前变化: $VALUE$%",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "12.34"
+      }
+    }
+  },
+  "currentSpeed": {
+    "message": "当前速度: $VALUE$x",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "1.5"
+      }
+    }
+  },
+  "currentChangeEmpty": {
+    "message": "当前变化: --%"
+  },
+  "currentSpeedEmpty": {
+    "message": "当前速度: --x"
+  },
+  "captureSuccess": {
+    "message": "捕获成功\n尺寸: $WIDTH$x$HEIGHT$",
+    "placeholders": {
+      "width": {
+        "content": "$1",
+        "example": "640"
+      },
+      "height": {
+        "content": "$2",
+        "example": "480"
+      }
+    }
+  },
+  "captureAlt": {
+    "message": "捕获的画面 $WIDTH$x$HEIGHT$",
+    "placeholders": {
+      "width": {
+        "content": "$1",
+        "example": "640"
+      },
+      "height": {
+        "content": "$2",
+        "example": "480"
+      }
+    }
+  },
+  "captureAltEmpty": {
+    "message": "暂无捕获画面"
+  },
+  "statusCapturing": {
+    "message": "正在后台捕获中..."
+  },
+  "statusStopped": {
+    "message": "已停止捕获"
+  },
+  "statusGetFailed": {
+    "message": "获取状态失败"
+  },
+  "statusStarting": {
+    "message": "正在启动后台捕获..."
+  },
+  "statusStartSuccess": {
+    "message": "后台捕获已启动"
+  },
+  "statusStartFailed": {
+    "message": "启动捕获失败"
+  },
+  "statusStartFailedDetail": {
+    "message": "启动捕获失败: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "权限被拒绝"
+      }
+    }
+  },
+  "statusStopping": {
+    "message": "正在停止后台捕获..."
+  },
+  "statusStopFailed": {
+    "message": "停止捕获失败"
+  },
+  "statusStopFailedDetail": {
+    "message": "停止捕获失败: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "未知错误"
+      }
+    }
+  },
+  "optionsTitle": {
+    "message": "智能变速设置"
+  },
+  "sectionCapture": {
+    "message": "视频捕获设置"
+  },
+  "maxResolutionLabel": {
+    "message": "捕获画面最大分辨率："
+  },
+  "maxResolutionUnit": {
+    "message": "px（长或宽的最大值）"
+  },
+  "sectionSpeedScheme": {
+    "message": "变速方案"
+  },
+  "currentSchemeLabel": {
+    "message": "当前方案："
+  },
+  "scheme1": {
+    "message": "方案一"
+  },
+  "scheme2": {
+    "message": "方案二"
+  },
+  "scheme3": {
+    "message": "方案三"
+  },
+  "changeRangeHeader": {
+    "message": "变化幅度区间"
+  },
+  "playbackSpeedHeader": {
+    "message": "播放速度"
+  },
+  "btnEdit": {
+    "message": "进行编辑"
+  },
+  "btnSave": {
+    "message": "保存设置"
+  },
+  "btnAddRow": {
+    "message": "添加一行"
+  },
+  "btnRemoveRow": {
+    "message": "删除"
+  },
+  "speedLabel": {
+    "message": "对应的播放速度："
+  },
+  "sensitivityLabel": {
+    "message": "灵敏度："
+  },
+  "sensitivityHint": {
+    "message": "数字越小越灵敏，数字越大越稳定"
+  },
+  "validateEmpty": {
+    "message": "方案不能为空"
+  },
+  "validateFirstMinZero": {
+    "message": "第一行的变化幅度左区间必须为0"
+  },
+  "validateRangeError": {
+    "message": "第$ROW$行的变化幅度区间设置错误：右区间必须大于左区间",
+    "placeholders": {
+      "row": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "validateLastMaxHundred": {
+    "message": "最后一行的变化幅度右区间必须为100"
+  },
+  "validateContinuous": {
+    "message": "第$ROW1$行的右区间($MAX$)必须等于第$ROW2$行的左区间($MIN$)，以确保区间连续",
+    "placeholders": {
+      "row1": {
+        "content": "$1",
+        "example": "1"
+      },
+      "max": {
+        "content": "$2",
+        "example": "20"
+      },
+      "row2": {
+        "content": "$3",
+        "example": "2"
+      },
+      "min": {
+        "content": "$4",
+        "example": "20"
+      }
+    }
+  },
+  "saveFailed": {
+    "message": "保存失败，请重试"
+  }
+}

@@ -166,28 +166,28 @@
 </head>
 <body>
   <div class="header-container">
-    <h3>视频捕获预览</h3>
-    <div class="settings-link" id="settingsLink">设置</div>
+    <h3 data-i18n="popupTitle"></h3>
+    <div class="settings-link" id="settingsLink" data-i18n="settingsLink"></div>
   </div>
   
-  <div id="status" class="info">等待初始化...</div>
+  <div id="status" class="info" data-i18n="statusWaitingInit"></div>
   
   <!-- 显示当前变化幅度和播放速度 -->
   <div class="current-change">
-    <div id="currentChange">当前变化: --%</div>
-    <div id="currentSpeed">当前速度: --x</div>
+    <div id="currentChange"></div>
+    <div id="currentSpeed"></div>
   </div>
   
   <!-- 添加间隔时间输入（已隐藏） -->
   <div class="interval-control">
-    <label for="intervalInput">捕获间隔(毫秒):</label>
+    <label for="intervalInput" data-i18n="captureIntervalLabel"></label>
     <input type="number" id="intervalInput" value="200" min="50" max="1000">
   </div>
   
   <!-- 标签页 -->
   <div class="tabs">
-    <div class="tab active" id="chartTab">变化图表</div>
-    <div class="tab" id="videoTab">捕获画面</div>
+    <div class="tab active" id="chartTab" data-i18n="tabChart"></div>
+    <div class="tab" id="videoTab" data-i18n="tabCapture"></div>
   </div>
   
   <!-- 标签页内容 -->
@@ -211,9 +211,10 @@
     </div>
   </div>
   
-  <button id="startCapture">开始捕获</button>
-  <button id="stopCapture">停止捕获</button>
+  <button id="startCapture" data-i18n="btnStartCapture"></button>
+  <button id="stopCapture" data-i18n="btnStopCapture"></button>
 
+  <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

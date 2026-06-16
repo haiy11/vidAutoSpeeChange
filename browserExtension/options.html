@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>智能变速设置</title>
+  <title>Smart Speed Settings</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -312,89 +312,90 @@
 </head>
 <body>
   <div class="container">
-    <h1>智能变速设置</h1>
+    <h1 data-i18n="optionsTitle"></h1>
 
     <div class="section">
-      <div class="section-title">视频捕获设置</div>
+      <div class="section-title" data-i18n="sectionCapture"></div>
       
       <div class="scheme-edit-section">
         <div class="resolution-control">
           <div class="resolution-display">
-            <span>捕获画面最大分辨率：</span>
+            <span data-i18n="maxResolutionLabel"></span>
             <input type="number" id="maxResolutionInput" min="200" max="1920" value="480" readonly>
-            <span>px（长或宽的最大值）</span>
+            <span data-i18n="maxResolutionUnit"></span>
           </div>
-          <button class="edit-btn" id="resolutionEditBtn">进行编辑</button>
+          <button class="edit-btn" id="resolutionEditBtn" data-i18n="btnEdit"></button>
         </div>
       </div>
     </div>
     <div class="section">
-      <div class="section-title">变速方案</div>
+      <div class="section-title" data-i18n="sectionSpeedScheme"></div>
       
       <div class="scheme-selector">
-        <label>当前方案：</label>
+        <label data-i18n="currentSchemeLabel"></label>
         <select id="schemeSelect">
-          <option value="1">方案一</option>
-          <option value="2">方案二</option>
-          <option value="3">方案三</option>
+          <option value="1" data-i18n="scheme1"></option>
+          <option value="2" data-i18n="scheme2"></option>
+          <option value="3" data-i18n="scheme3"></option>
         </select>
       </div>
 
       <div id="scheme1Content" class="scheme-content active">
         <div class="scheme-edit-section">
           <div class="scheme-header">
-            <span>变化幅度区间</span>
+            <span data-i18n="changeRangeHeader"></span>
             <span></span>
-            <span>播放速度</span>
+            <span data-i18n="playbackSpeedHeader"></span>
           </div>
           <div id="scheme1Rows">
             <!-- 动态生成方案1的行 -->
           </div>
-          <button class="add-row-btn" id="scheme1AddRowBtn" style="display:none;">添加一行</button>
-          <button class="edit-btn" id="scheme1EditBtn">进行编辑</button>
+          <button class="add-row-btn" id="scheme1AddRowBtn" style="display:none;" data-i18n="btnAddRow"></button>
+          <button class="edit-btn" id="scheme1EditBtn" data-i18n="btnEdit"></button>
         </div>
       </div>
 
       <div id="scheme2Content" class="scheme-content">
         <div class="scheme-edit-section">
           <div class="scheme-header">
-            <span>变化幅度区间</span>
+            <span data-i18n="changeRangeHeader"></span>
             <span></span>
-            <span>播放速度</span>
+            <span data-i18n="playbackSpeedHeader"></span>
           </div>
           <div id="scheme2Rows">
             <!-- 动态生成方案2的行 -->
           </div>
-          <button class="add-row-btn" id="scheme2AddRowBtn" style="display:none;">添加一行</button>
-          <button class="edit-btn" id="scheme2EditBtn">进行编辑</button>
+          <button class="add-row-btn" id="scheme2AddRowBtn" style="display:none;" data-i18n="btnAddRow"></button>
+          <button class="edit-btn" id="scheme2EditBtn" data-i18n="btnEdit"></button>
         </div>
       </div>
 
       <div id="scheme3Content" class="scheme-content">
         <div class="scheme-edit-section">
           <div class="scheme-header">
-            <span>变化幅度区间</span>
+            <span data-i18n="changeRangeHeader"></span>
             <span></span>
-            <span>播放速度</span>
+            <span data-i18n="playbackSpeedHeader"></span>
           </div>
           <div id="scheme3Rows">
             <!-- 动态生成方案3的行 -->
           </div>
-          <button class="add-row-btn" id="scheme3AddRowBtn" style="display:none;">添加一行</button>
-          <button class="edit-btn" id="scheme3EditBtn">进行编辑</button>
+          <button class="add-row-btn" id="scheme3AddRowBtn" style="display:none;" data-i18n="btnAddRow"></button>
+          <button class="edit-btn" id="scheme3EditBtn" data-i18n="btnEdit"></button>
         </div>
       </div>
 
       <div class="sensitivity-section">
-        <span>灵敏度：</span>
+        <span data-i18n="sensitivityLabel"></span>
         <button class="sensitivity-btn" id="sensitivityMinus">-</button>
         <span class="sensitivity-value" id="sensitivityValue">3</span>
         <button class="sensitivity-btn" id="sensitivityPlus">+</button>
-        <span class="sensitivity-info">数字越小越灵敏，数字越大越稳定</span>
+        <span class="sensitivity-info" data-i18n="sensitivityHint"></span>
       </div>
     </div>
   </div>
 
+  <script src="i18n.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

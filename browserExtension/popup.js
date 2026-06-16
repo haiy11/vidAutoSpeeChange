@@ -9,6 +9,8 @@ const MAX_HISTORY_POINTS = 40; // 最多保存40个历史点
 const CHART_MAX_VALUE = 100; // 图表最大值
 
 document.addEventListener('DOMContentLoaded', () => {
+  applyI18n();
+
   // 获取DOM元素
   const statusDiv = document.getElementById('status');
   const videoElement = document.getElementById('capturedVideo');
@@ -22,6 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const videoContent = document.getElementById('videoContent');
   const chartContent = document.getElementById('chartContent');
   const settingsLink = document.getElementById('settingsLink');
+
+  if (currentChangeDiv) {
+    currentChangeDiv.textContent = t('currentChangeEmpty');
+  }
+  if (currentSpeedDiv) {
+    currentSpeedDiv.textContent = t('currentSpeedEmpty');
+  }
 
   // 检查必需的DOM元素是否存在
   if (!startBtn || !stopBtn) {
@@ -126,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 更新当前变化显示（如果元素存在）
     if (currentChangeDiv) {
-      currentChangeDiv.textContent = `当前变化: ${value.toFixed(2)}%`;
+      currentChangeDiv.textContent = t('currentChange', value.toFixed(2));
     }
     
     // 更新图表
@@ -150,12 +159,14 @@ function displayCapture(data) {
   if (data.imageDataUrl) {
     // 直接设置图片的src属性
     imgElement.src = data.imageDataUrl;
-    imgElement.alt = `捕获的画面 ${data.width}x${data.height}`;
-    updateStatus(`✅ 捕获成功\n尺寸: ${data.width || 'unknown'}x${data.height || 'unknown'}`, 'success');
+    const width = data.width || 'unknown';
+    const height = data.height || 'unknown';
+    imgElement.alt = t('captureAlt', width, height);
+    updateStatus(t('captureSuccess', width, height), 'success');
   } else {
     // 如果没有图片数据，清空src
     imgElement.src = '';
-    imgElement.alt = '暂无捕获画面';
+    imgElement.alt = t('captureAltEmpty');
   }
 }
 
@@ -171,23 +182,23 @@ function displayCapture(data) {
       if (isCapturing) {
         startBtn.disabled = true;
         stopBtn.disabled = false;
-        updateStatus('正在后台捕获中...', 'success');
+        updateStatus(t('statusCapturing'), 'success');
       } else {
         startBtn.disabled = false;
         stopBtn.disabled = true;
-        updateStatus('已停止捕获', 'info');
+        updateStatus(t('statusStopped'), 'info');
       }
       
       // 更新当前变化显示
       if (currentChangeDiv) {
-        currentChangeDiv.textContent = `当前变化: ${currentChange.toFixed(2)}%`;
+        currentChangeDiv.textContent = t('currentChange', currentChange.toFixed(2));
       }
       
       // 重绘图表
       drawChart();
     } catch (error) {
       console.error('获取状态失败:', error);
-      updateStatus('获取状态失败', 'error');
+      updateStatus(t('statusGetFailed'), 'error');
     }
   }
 
@@ -210,38 +221,38 @@ function displayCapture(data) {
   // 开始捕获
   startBtn.addEventListener('click', async () => {
     try {
-      updateStatus('正在启动后台捕获...', 'info');
+      updateStatus(t('statusStarting'), 'info');
       const response = await chrome.runtime.sendMessage({action: "startCapture"});
       if (response.success) {
         isCapturing = true;
         startBtn.disabled = true;
         stopBtn.disabled = false;
-        updateStatus('✅ 后台捕获已启动', 'success');
+        updateStatus(t('statusStartSuccess'), 'success');
       } else {
-        updateStatus('❌ 启动捕获失败', 'error');
+        updateStatus(t('statusStartFailed'), 'error');
       }
     } catch (error) {
       console.error('启动捕获失败:', error);
-      updateStatus('❌ 启动捕获失败: ' + error.message, 'error');
+      updateStatus(t('statusStartFailedDetail', error.message), 'error');
     }
   });
 
   // 停止捕获
   stopBtn.addEventListener('click', async () => {
     try {
-      updateStatus('正在停止后台捕获...', 'info');
+      updateStatus(t('statusStopping'), 'info');
       const response = await chrome.runtime.sendMessage({action: "stopCapture"});
       if (response.success) {
         isCapturing = false;
         startBtn.disabled = false;
         stopBtn.disabled = true;
-        updateStatus('已停止捕获', 'info');
+        updateStatus(t('statusStopped'), 'info');
       } else {
-        updateStatus('❌ 停止捕获失败', 'error');
+        updateStatus(t('statusStopFailed'), 'error');
       }
     } catch (error) {
       console.error('停止捕获失败:', error);
-      updateStatus('❌ 停止捕获失败: ' + error.message, 'error');
+      updateStatus(t('statusStopFailedDetail', error.message), 'error');
     }
   });
 
@@ -258,13 +269,13 @@ function displayCapture(data) {
       }
       if (message.currentChange !== undefined) {
         if (currentChangeDiv) {
-          currentChangeDiv.textContent = `当前变化: ${message.currentChange.toFixed(2)}%`;
+          currentChangeDiv.textContent = t('currentChange', message.currentChange.toFixed(2));
         }
       }
     } else if (message.action === 'updateCurrentSpeed') {
       // 更新当前播放速度
       if (currentSpeedDiv) {
-        currentSpeedDiv.textContent = `当前速度: ${message.currentSpeed.toFixed(1)}x`;
+        currentSpeedDiv.textContent = t('currentSpeed', message.currentSpeed.toFixed(1));
       }
     }
   });
@@ -275,7 +286,7 @@ function displayCapture(data) {
   });
 
   // 初始化状态
-  updateStatus('正在加载状态...', 'info');
+  updateStatus(t('statusLoading'), 'info');
   getCurrentStatus().then(() => {
     // 获取当前捕获画面
     getCurrentCapture();

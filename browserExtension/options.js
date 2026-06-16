@@ -1,5 +1,8 @@
 // options.js
 document.addEventListener('DOMContentLoaded', function() {
+  applyI18n();
+  document.title = t('optionsTitle');
+
   // 获取DOM元素
   const schemeSelect = document.getElementById('schemeSelect');
   const scheme1Content = document.getElementById('scheme1Content');
@@ -106,10 +109,13 @@ document.addEventListener('DOMContentLoaded', function() {
       <input type="number" class="min-input" min="0" max="100" value="${rowData.min}" readonly>
       <span>~</span>
       <input type="number" class="max-input" min="0" max="100" value="${rowData.max}" readonly>
-      <span>对应的播放速度：</span>
+      <span class="speed-label"></span>
       <input type="number" class="speed-input" min="0.1" max="4.0" step="0.1" value="${rowData.speed}" readonly>
-      <button class="remove-row-btn" style="display:none;">删除</button>
+      <button class="remove-row-btn" style="display:none;"></button>
     `;
+
+    rowDiv.querySelector('.speed-label').textContent = t('speedLabel');
+    rowDiv.querySelector('.remove-row-btn').textContent = t('btnRemoveRow');
     
     // 添加事件监听器
     const minInput = rowDiv.querySelector('.min-input');
@@ -188,34 +194,34 @@ document.addEventListener('DOMContentLoaded', function() {
   // 验证方案数据
   function validateScheme(rows) {
     if (rows.length === 0) {
-      alert('方案不能为空');
+      alert(t('validateEmpty'));
       return false;
     }
     
     // 检查第一行的左区间是否为0
     if (rows[0].min !== 0) {
-      alert('第一行的变化幅度左区间必须为0');
+      alert(t('validateFirstMinZero'));
       return false;
     }
     
     // 检查每一行的右区间是否比左区间大
     for (let i = 0; i < rows.length; i++) {
       if (rows[i].min >= rows[i].max) {
-        alert(`第${i + 1}行的变化幅度区间设置错误：右区间必须大于左区间`);
+        alert(t('validateRangeError', String(i + 1)));
         return false;
       }
     }
     
     // 检查最后一行的右区间是否为100
     if (rows[rows.length - 1].max !== 100) {
-      alert('最后一行的变化幅度右区间必须为100');
+      alert(t('validateLastMaxHundred'));
       return false;
     }
     
     // 检查区间是否连续且无重叠 - 修正：区间应是连续的，上一行的max应等于下一行的min
     for (let i = 0; i < rows.length - 1; i++) {
       if (rows[i].max !== rows[i + 1].min) {
-        alert(`第${i + 1}行的右区间(${rows[i].max})必须等于第${i + 2}行的左区间(${rows[i + 1].min})，以确保区间连续`);
+        alert(t('validateContinuous', String(i + 1), String(rows[i].max), String(i + 2), String(rows[i + 1].min)));
         return false;
       }
     }
@@ -259,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
           await chrome.storage.sync.set({ schemes: schemes });
           
           // 更新按钮文本
-          btn.textContent = '进行编辑';
+          btn.textContent = t('btnEdit');
           isEditing = false;
           
           // 隐藏添加行按钮
@@ -279,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       } else {
         // 进入编辑模式
-        btn.textContent = '保存设置';
+        btn.textContent = t('btnSave');
         isEditing = true;
         
         const container = document.getElementById(`scheme${schemeNum}Rows`);
@@ -378,7 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
         await chrome.storage.sync.set({ maxResolution: resolution });
         
         // 更新按钮文本
-        resolutionEditBtn.textContent = '进行编辑';
+        resolutionEditBtn.textContent = t('btnEdit');
         isEditingResolution = false;
         
         // 禁用输入框
@@ -387,11 +393,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('最大分辨率已保存:', resolution);
       } catch (error) {
         console.error('保存分辨率设置失败:', error);
-        alert('保存失败，请重试');
+        alert(t('saveFailed'));
       }
     } else {
       // 进入编辑模式
-      resolutionEditBtn.textContent = '保存设置';
+      resolutionEditBtn.textContent = t('btnSave');
       isEditingResolution = true;
       
       // 启用输入框
